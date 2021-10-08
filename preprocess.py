@@ -17,6 +17,8 @@ preprocess od data
             3. box plot analysis
                 1. upper quartile and lower quartile
                 2. overcome the problem that delta in distribution is under the influence of outliers
+    3. duplicated data
+        1. analysis first, and remove it if the duplicated data makes no sense
     3. inconsistent data
 2. data transformation
     1. square, square root, exponent, logarithm, etc.
@@ -29,33 +31,41 @@ preprocess od data
 
 import numpy as np
 import pandas as pd
+from sklearn.utils import shuffle
 import load_data
 import parameters
 
 
 def data_cleaning(data):
     print("data cleaning...")
+    # first, for missing value
+    # data = data.dropna()
+    # second, for outliers
     print("data cleaning done.")
 
 
-def data_transformation(data):
-    print("data transformation...")
-    print("data transformation done.")
+def data_normalization_maxmin(data):
+    print("data normalization maxmin...")
+    answer = []
+    for i in range(data.shape[0]):
+        answer.append(data.at[i, data.columns[data.shape[1] - 1]])
+    data_nor = (data - data.min())/(data.max() - data.min())
+    for i in range(data_nor.shape[0]):
+        data_nor.at[i, data.columns[data_nor.shape[1] - 1]] = answer[i]
+    print("data normalization maxmin done.")
+    return data_nor
 
 
-def data_out_of_order(data):
-    # out-of-order process
-    print("data out of order...")
-    print("data out of order done.")
-
-
-def data_sample(data, ratio):
-    # shrink the amount of data
-    # new scale = original scale * ratio
-    # 1. out-of-order process
-    # 2. extract data piece in a particular cycle
-    print("data sample...")
-    print("data sample done.")
+def data_normalization(data):
+    print("data normalization...")
+    answer = []
+    for i in range(data.shape[0]):
+        answer.append(data.at[i, data.columns[data.shape[1] - 1]])
+    data_nor = (data - data.mean())/data.std()
+    for i in range(data_nor.shape[0]):
+        data_nor.at[i, data.columns[data_nor.shape[1] - 1]] = answer[i]
+    print("data normalization done.")
+    return data_nor
 
 
 if __name__ == '__main__':
