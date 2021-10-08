@@ -17,14 +17,20 @@ def load_data(path):
     for file in os.listdir(path):
         print(file)
         files.append(os.path.join(path, file))
-    data_end_all = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1")
-    data_merge = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1")
-    print("data_end_all.axes ->", data_end_all.axes)
-    print("data_merge.axes ->", data_merge.axes)
+    end_col = [i for i in range(1, parameters.END_OFF_COL)]
+    merge_col = [i for i in range(1, parameters.MERGE_COL)]
+    end_off_feature = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1", usecols=end_col)
+    merge_feature = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=merge_col)
+    end_off_target = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1", usecols=[parameters.END_OFF_COL])
+    merge_target = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=[parameters.MERGE_COL])
+    end_off = pandas.merge(end_off_feature, end_off_target, left_index=True, right_index=True)
+    merge = pandas.merge(merge_feature, merge_target, left_index=True, right_index=True)
+    print("end_off.axes ->", end_off.axes)
+    print("merge.axes ->", merge.axes)
     print("load data done.")
-    return data_end_all, data_merge
+    return end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target
 
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    data_end_all, data_merge = load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data(path)

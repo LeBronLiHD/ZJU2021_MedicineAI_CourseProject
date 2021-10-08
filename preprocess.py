@@ -27,12 +27,37 @@ preprocess od data
     4. attribute structure, like BMI
 """
 
+import numpy as np
+import pandas as pd
+import load_data
+import parameters
 
-def data_cleaning():
+
+def data_cleaning(data):
     print("data cleaning...")
     print("data cleaning done.")
 
 
-def data_transformation():
+def data_transformation(data):
     print("data transformation...")
     print("data transformation done.")
+
+
+def data_out_of_order(data):
+    # out-of-order process
+    print("data out of order...")
+    print("data out of order done.")
+
+
+def data_sample(data, ratio):
+    # shrink the amount of data
+    # new scale = original scale * ratio
+    # 1. out-of-order process
+    # 2. extract data piece in a particular cycle
+    print("data sample...")
+    print("data sample done.")
+
+
+if __name__ == '__main__':
+    path = parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
