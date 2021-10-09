@@ -43,6 +43,13 @@ def single_feature(data, feature, target, show_image):
     data_new = data.sample(frac=parameters.SAMPLE_RATIO_SINGLE).reset_index(drop=True)
     data_new = preprocess.data_normalization(data_new)
     print("data_new.shape ->", data_new.shape)
+    data_heat_map = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    print("data_heat_map.shape ->", data_heat_map.shape)
+    sns.heatmap(data_heat_map, annot=True, vmax=1, square=True,
+                yticklabels=[i for i in range(1, len(data_heat_map.columns) + 1)],
+                xticklabels=[i for i in range(1, len(data_heat_map.columns) + 1)], cmap="RdBu")
+    plt.title("heatmap")
+    plt.show()
     for i in range(0, parameters.END_OFF_COL - 3):
         print("Y ->", target.columns[0], "\t\t\tX ->", feature.columns[i])
         correlation[0].append(i)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-preprocess od data
+preprocess of data
 1. data cleaning
     1. missing value
         1. delete the piece of data
@@ -34,14 +34,43 @@ import pandas as pd
 from sklearn.utils import shuffle
 import load_data
 import parameters
+from scipy.interpolate import lagrange
+
+
+def ployinterp_column(data_piece, index, cycle=parameters.INTER_CYCLE):
+    values = data_piece[list(range(index - cycle, index)) + list(range(index + 1, index + cycle + 1))]  # extract value
+    values = values[values.notnull()]
+    return lagrange(values.index, list(values))(index)
 
 
 def data_cleaning(data):
     print("data cleaning...")
     # first, for missing value
-    # data = data.dropna()
+    print("before cleaning, data.shape ->", data.shape)
+    print("missing value of data ->")
+    print(data[data.isnull().values==True])
+    size = len(data)
+    for feature in data.columns:
+        for i in range(size):
+            if data[feature].isnull()[i]:
+                data.at[i, feature] = ployinterp_column(data[feature], i)
     # second, for outliers
+    print("after missing value process, data.shape ->", data.shape)
+    for feature in data.columns:
+        upper_quartile = data[feature].quantile(0.75)
+        lower_quartile = data[feature].quantile(0.25)
+        for i in range(size):
+            value = data.at[i, feature]
+            if value >= 1.5 * (upper_quartile - lower_quartile) + upper_quartile:
+                data.at[i, feature] = 1.5 * (upper_quartile - lower_quartile) + upper_quartile
+            if value <= lower_quartile - 1.5 * (upper_quartile - lower_quartile):
+                data.at[i, feature] = lower_quartile - 1.5 * (upper_quartile - lower_quartile)
+    # third, duplicated data
+    print("after outliers process, data.shape ->", data.shape)
+    data.drop_duplicates(subset=None, keep="first", inplace=False, ignore_index=True)
+    print("after duplicated value process, data.shape ->", data.shape)
     print("data cleaning done.")
+    return data
 
 
 def data_normalization_maxmin(data):
@@ -71,3 +100,4 @@ def data_normalization(data):
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off_clean = data_cleaning(end_off)

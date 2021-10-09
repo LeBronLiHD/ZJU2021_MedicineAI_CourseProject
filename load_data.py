@@ -27,6 +27,10 @@ def load_data(path):
     merge = pandas.merge(merge_feature, merge_target, left_index=True, right_index=True)
     print("end_off.shape ->", end_off.shape)
     print("merge.shape ->", merge.shape)
+    print("end_off_feature.shape ->", end_off_feature.shape)
+    print("merge_feature.shape ->", merge_feature.shape)
+    print("end_off_target.shape ->", end_off_target.shape)
+    print("merge_target.shape ->", merge_target.shape)
     print("load data done.")
     return end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target
 

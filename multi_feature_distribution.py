@@ -52,5 +52,9 @@ def single_feature(data, important):
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
+        preprocess.data_cleaning(end_off), preprocess.data_cleaning(merge), preprocess.data_cleaning(end_off_feature), \
+        preprocess.data_cleaning(merge_feature), preprocess.data_cleaning(end_off_target), preprocess.data_cleaning(
+            merge_target)
     important = single_feature_distribution.single_feature(end_off, end_off_feature, end_off_target, False)
     single_feature(end_off, important)
