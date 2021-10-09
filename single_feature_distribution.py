@@ -20,6 +20,20 @@ import heapq
 import preprocess
 
 
+def get_n_largest(list, n):
+    ans, idx = 0, 0
+    if n >= len(list):
+        n = len(list) - 1
+        return np.min(list)
+    list_copy = []
+    for i in range(len(list)):
+        list_copy.append(list[i])
+    for i in range(n):
+        ans, idx = np.max(list_copy), np.argmax(list_copy)
+        list_copy.pop(idx)
+    return ans
+
+
 def get_correlation(data_1, col_1, data_2, col_2):
     rows = data_1.shape[0]  # data_1.shape[0] == data_2.shape[0]
     num_1 = []
@@ -43,13 +57,7 @@ def single_feature(data, feature, target, show_image):
     data_new = data.sample(frac=parameters.SAMPLE_RATIO_SINGLE).reset_index(drop=True)
     data_new = preprocess.data_normalization(data_new)
     print("data_new.shape ->", data_new.shape)
-    data_heat_map = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
-    print("data_heat_map.shape ->", data_heat_map.shape)
-    sns.heatmap(data_heat_map, annot=True, vmax=1, square=True,
-                yticklabels=[i for i in range(1, len(data_heat_map.columns) + 1)],
-                xticklabels=[i for i in range(1, len(data_heat_map.columns) + 1)], cmap="RdBu")
-    plt.title("heatmap")
-    plt.show()
+    print("data_new & target ->", data_new.columns[data_new.shape[1] - 1], target.columns[0])
     for i in range(0, parameters.END_OFF_COL - 3):
         print("Y ->", target.columns[0], "\t\t\tX ->", feature.columns[i])
         correlation[0].append(i)
@@ -66,18 +74,33 @@ def single_feature(data, feature, target, show_image):
             plt.show()
     plt.figure()
     plt.plot(correlation[0], correlation[1], ".b")
-    standard = max(correlation[1]) * parameters.EXP_CORR_RATE
+    standard = get_n_largest(correlation[1], parameters.EXP_CORR_TOP)
+    standard_h = get_n_largest(correlation[1], parameters.EXP_CORR_TOP_H)
     plt.plot(correlation[0], [standard] * len(correlation[0]), "-r")
     plt.xlabel("sequence number")
     plt.ylabel("correlation")
     plt.title("correlation of features")
     plt.show()
     important = [[], []]
+    important_h = [[], []]
     for i in range(0, parameters.END_OFF_COL - 3):
         if correlation[1][i] >= standard:
             important[0].append(correlation[0][i])
             important[1].append(correlation[1][i])
+            important_h[0].append(correlation[0][i])
+            important_h[1].append(correlation[1][i])
+        elif correlation[1][i] >= standard_h:
+            important_h[0].append(correlation[0][i])
+            important_h[1].append(correlation[1][i])
+        else:
+            continue
     print("single feature distribution done.")
+    # plt.subplots(figsize=(data_new.shape[1], data_new.shape[1]))
+    # sns.heatmap(data_new.corr(), annot=True, vmax=1, square=True,
+    #             yticklabels=data_new.columns.values.tolist(),
+    #             xticklabels=data_new.columns.values.tolist(), cmap="RdBu")
+    # plt.title("heatmap")
+    # plt.show()
     print("number of important features =", len(important[0]))
     most_influence_index = []
     most_influence_feature = []
@@ -91,10 +114,11 @@ def single_feature(data, feature, target, show_image):
         most_influence_feature.append(data_new.columns[important[0][index]])
         important[1].remove(important[1][index])
         important[0].remove(important[0][index])
-    print("important ->", important)
+    print("important ->", return_important[0])
+    print("important_h ->", important_h[0])
     print("most_influence_index ->", most_influence_index)
     print("most_influence_feature ->", most_influence_feature)
-    return return_important
+    return return_important, important_h
 
 
 if __name__ == '__main__':

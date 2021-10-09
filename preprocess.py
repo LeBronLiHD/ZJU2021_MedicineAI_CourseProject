@@ -50,12 +50,16 @@ def data_cleaning(data):
     print("missing value of data ->")
     print(data[data.isnull().values==True])
     size = len(data)
-    for feature in data.columns:
-        for i in range(size):
-            if data[feature].isnull()[i]:
-                data.at[i, feature] = ployinterp_column(data[feature], i)
+    if data[data.isnull().values==True].empty:
+        print("no nan data.")
+    else:
+        for feature in data.columns:
+            for i in range(size):
+                if data[feature].isnull()[i]:
+                    data.at[i, feature] = ployinterp_column(data[feature], i)
     # second, for outliers
     print("after missing value process, data.shape ->", data.shape)
+    toolarge, toosmall = 0, 0
     for feature in data.columns:
         upper_quartile = data[feature].quantile(0.75)
         lower_quartile = data[feature].quantile(0.25)
@@ -63,8 +67,11 @@ def data_cleaning(data):
             value = data.at[i, feature]
             if value >= 1.5 * (upper_quartile - lower_quartile) + upper_quartile:
                 data.at[i, feature] = 1.5 * (upper_quartile - lower_quartile) + upper_quartile
+                toolarge += 1
             if value <= lower_quartile - 1.5 * (upper_quartile - lower_quartile):
                 data.at[i, feature] = lower_quartile - 1.5 * (upper_quartile - lower_quartile)
+                toosmall += 1
+    print("toolarge =", toolarge, "\t\ttoosmall =", toosmall)
     # third, duplicated data
     print("after outliers process, data.shape ->", data.shape)
     data.drop_duplicates(subset=None, keep="first", inplace=False, ignore_index=True)
