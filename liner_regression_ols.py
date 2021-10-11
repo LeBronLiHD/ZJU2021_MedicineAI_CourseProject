@@ -17,7 +17,7 @@ import pandas
 import single_feature_distribution
 
 
-def plot_pred(data, model, standard):
+def plot_pred(data, model, standard, name):
     data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     select_col = []
@@ -55,43 +55,43 @@ def plot_pred(data, model, standard):
     plt.figure()
     plt.subplot(1, 2, 1)
     pandas.plotting.andrews_curves(data_plot_pred, data_plot_pred.columns[data_plot_pred.shape[1] - 1],
-                                   color=["orange", "cyan"], alpha=0.7)
-    plt.title("andrews_predict")
+                                   color=["moccasin", "cyan"], alpha=0.80)
+    plt.title(name + "andrews_predict")
     plt.subplot(1, 2, 2)
     pandas.plotting.andrews_curves(data_plot_real, data_plot_real.columns[data_plot_real.shape[1] - 1],
-                                   color=["chartreuse", "fuchsia"], alpha=0.7)
-    plt.title("andrews_real_data")
+                                   color=["palegreen", "fuchsia"], alpha=0.80)
+    plt.title(name + "andrews_real_data")
     plt.show()
 
     plt.figure()
     plt.subplot(1, 2, 1)
     pandas.plotting.parallel_coordinates(data_plot_pred, data_plot_pred.columns[data_plot_pred.shape[1] - 1],
-                                         color=["chartreuse", "fuchsia"], alpha=0.7)
-    plt.title("parallel_real_data")
+                                         color=["palegreen", "fuchsia"], alpha=0.80)
+    plt.title(name + "parallel_real_data")
     plt.subplot(1, 2, 2)
     pandas.plotting.parallel_coordinates(data_plot_real, data_plot_real.columns[data_plot_real.shape[1] - 1],
-                                         color=["deepskyblue", "orangered"], alpha=0.7)
-    plt.title("parallel_predict")
+                                         color=["skyblue", "red"], alpha=0.80)
+    plt.title(name + "parallel_predict")
     plt.show()
 
     plt.figure()
     plt.subplot(1, 2, 1)
     pandas.plotting.radviz(data_plot_pred, data_plot_pred.columns[data_plot_pred.shape[1] - 1],
-                           color=["deepskyblue", "orangered"], alpha=0.7)
-    plt.title("radviz predict")
+                           color=["skyblue", "red"], alpha=0.80)
+    plt.title(name + "radviz predict")
     plt.subplot(1, 2, 2)
     pandas.plotting.radviz(data_plot_real, data_plot_real.columns[data_plot_real.shape[1] - 1],
-                           color=["orange", "cyan"], alpha=0.7)
-    plt.title("radviz real_data")
+                           color=["moccasin", "cyan"], alpha=0.80)
+    plt.title(name + "radviz real_data")
     plt.show()
-    print("ols plot done.")
+    print("linear regression plot done.")
 
 
 def ols_analysis(data, feature, target):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.2, random_state=1)
-    Linear = LinearRegression()
+    Linear = LinearRegression(fit_intercept=True, n_jobs=None, positive=False)
     Linear.fit(X_train, Y_train)
     print("Slope ->")
     print(Linear.coef_)
@@ -109,7 +109,7 @@ def ols_analysis(data, feature, target):
     size = len(Y_test)
     count = 0
     for i in range(size):
-        if Y_test[Y_test.columns[0]].iat[i] == 1 == 1:
+        if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
     standard = single_feature_distribution.get_n_largest(Y_pred, count)
@@ -132,10 +132,12 @@ def ols_analysis(data, feature, target):
             continue
     print("right =", right)
     print("fault =", size - right)
-    print("right ratio =", right / size)
+    print("overall right ratio =", right / size)
+    print("0 right ratio =", right_0_1[0] / (size - count))
+    print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    plot_pred(data, Linear, standard)
+    plot_pred(data, Linear, standard, "ols")
 
 
 if __name__ == '__main__':
