@@ -40,7 +40,7 @@ def pls_regression(data, feature, target):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    standard = single_feature_distribution.get_n_largest(Y_pred, count)
+    standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
