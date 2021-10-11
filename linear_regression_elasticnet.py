@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
+# -*-  coding: utf-8 -*-
 
 """
-regression the data using ols
+regression the data using ElasticNet
 """
+
 
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
@@ -13,7 +14,6 @@ import load_data
 import preprocess
 from matplotlib import pyplot as plt
 import pandas
-
 import single_feature_distribution
 
 
@@ -87,7 +87,7 @@ def plot_pred(data, model, standard):
     print("ols plot done.")
 
 
-def ols_analysis(data, feature, target):
+def elastic_net(data, feature, target):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.2, random_state=1)
@@ -141,4 +141,4 @@ def ols_analysis(data, feature, target):
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
-    ols_analysis(end_off, end_off_feature, end_off_target)
+    elastic_net(end_off, end_off_feature, end_off_target)
