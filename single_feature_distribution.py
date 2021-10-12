@@ -123,5 +123,5 @@ def single_feature(data, feature, target, show_image):
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path, test_mode=True)
     single_feature(end_off, end_off_feature, end_off_target, False)

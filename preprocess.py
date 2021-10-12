@@ -41,6 +41,12 @@ from imblearn.over_sampling import SMOTE
 def un_balance(X_train, Y_train, ratio=0.5):
     model = SMOTE(random_state=0, sampling_strategy=ratio, k_neighbors=8, n_jobs=4)
     X, Y = model.fit_resample(X_train, Y_train)
+    size = len(Y)
+    count = 0
+    for i in range(size):
+        if Y.at[i, Y.columns[Y.shape[1] - 1]] == 1:
+            count += 1
+    print("after SMOTE ->", count, size - count, count / size)
     return X, Y
 
 
@@ -113,5 +119,6 @@ def data_normalization(data):
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+                                                                                                       test_mode=True)
     end_off_clean = data_cleaning(end_off)

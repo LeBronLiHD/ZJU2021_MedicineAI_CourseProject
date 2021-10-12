@@ -74,5 +74,6 @@ def pls_regression(data, feature, target, mode):
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+                                                                                                       test_mode=True)
     pls_regression(end_off, end_off_feature, end_off_target, mode=True)

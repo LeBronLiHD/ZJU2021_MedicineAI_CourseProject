@@ -35,6 +35,7 @@ def elastic_net(data, feature, target, mode):
           metrics.mean_squared_error(Y_test, Y_pred))
     print("mean_standard_error ->",
           np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)))
+    
     size = len(Y_test)
     count = 0
     for i in range(size):
@@ -74,5 +75,6 @@ def elastic_net(data, feature, target, mode):
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+                                                                                                       test_mode=True)
     elastic_net(end_off, end_off_feature, end_off_target, mode=True)

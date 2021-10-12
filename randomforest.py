@@ -1,33 +1,31 @@
-# -*-  coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """
-regression the data using Bayesian Ridge Regression
+use random forest to train model
 """
 
-
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-import numpy as np
+import liner_regression_ols
 import parameters
 import load_data
 import preprocess
-from matplotlib import pyplot as plt
-import pandas
+from sklearn.model_selection import train_test_split
+from sklearn import metrics
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.datasets import make_regression
 import single_feature_distribution
-from sklearn.linear_model import ElasticNet
-from sklearn.linear_model import BayesianRidge
-import liner_regression_ols
 
 
-def elastic_net(data, feature, target, mode):
+def random_forest(data, feature, target, mode=True):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
+    feature = preprocess.data_normalization(feature)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
-    Linear = BayesianRidge(compute_score=True, tol=1e-10, n_iter=10000, fit_intercept=True, normalize=False)
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
-    Linear.fit(X_train, Y_train)
-    Y_pred = Linear.predict(X_test)
+    forest = RandomForestRegressor(n_estimators=200, criterion="mse", n_jobs=4)
+    X_train, Y_train= preprocess.un_balance(X_train, Y_train, ratio=0.75)
+    forest.fit(X_train, Y_train)
+    # Predict the response for test dataset
+    Y_pred = forest.predict(X_test)
     print("explained_variance_score ->",
           metrics.explained_variance_score(Y_test, Y_pred))
     print("mean_absolute_error ->",
@@ -70,11 +68,12 @@ def elastic_net(data, feature, target, mode):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    liner_regression_ols.plot_pred(data, Linear, standard, "bayesian")
+    data = preprocess.data_normalization(data)
+    liner_regression_ols.plot_pred(data, forest, standard, "forest")
 
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=True)
-    elastic_net(end_off, end_off_feature, end_off_target, mode=True)
+    random_forest(end_off, end_off_feature, end_off_target, mode=True)

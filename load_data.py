@@ -10,8 +10,8 @@ import pandas
 import openpyxl
 
 
-def merge_data_judge(end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target):
-    print("merge data for analysis and judge...")
+def merge_data(end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target):
+    print("merge data ...")
     all_label_same = 0
     for i in range(end_off.shape[1]):
         if end_off.columns[i] != merge.columns[i]:
@@ -23,12 +23,13 @@ def merge_data_judge(end_off, merge, end_off_feature, merge_feature, end_off_tar
     print("data.shape ->", data.shape)
     print("feature.shape ->", feature.shape)
     print("target.shape ->", target.shape)
-    print("merge data for analysis and judge done.")
+    print("merge data done.")
     return data, feature, target
 
 
 def load_data_predict(path, test_mode=True):
     print("load data for predict...")
+    print("test_mode =", test_mode)
     files = []
     for file in os.listdir(path):
         print(file)
@@ -43,16 +44,19 @@ def load_data_predict(path, test_mode=True):
     basic_data_merge = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=basic_info_merge)
     size_end_off = len(basic_data_end_off)
     size_merge = len(basic_data_merge)
-    for i in range(size_end_off):
-        if basic_data_end_off.at[i, basic_data_end_off.columns[basic_data_end_off.shape[1] - 1]] == 0:
+    divide_groups.append(0)
+    for i in range(1, size_end_off):
+        former = basic_data_end_off.at[i - 1, basic_data_end_off.columns[basic_data_end_off.shape[1] - 1]]
+        if basic_data_end_off.at[i, basic_data_end_off.columns[basic_data_end_off.shape[1] - 1]] < former:
             divide_groups.append(i)
     count_groups_end_off = len(divide_groups)
-    for i in range(size_merge):
-        if basic_data_merge.at[i, basic_data_merge.columns[basic_data_merge.shape[1] - 1]] == 0:
+    divide_groups.append(0 + size_end_off)
+    for i in range(1, size_merge):
+        former = basic_data_merge.at[i - 1, basic_data_merge.columns[basic_data_merge.shape[1] - 1]]
+        if basic_data_merge.at[i, basic_data_merge.columns[basic_data_merge.shape[1] - 1]] < former:
             divide_groups.append(i + size_end_off)
     print("count_groups =", len(divide_groups))
     count_groups = len(divide_groups)
-    print("count_groups =", len(divide_groups))
     divide_groups.append(len(basic_data_merge) + len(basic_data_end_off))
     if test_mode:
         end_col = [i for i in range(2, parameters.END_OFF_COL)]
@@ -80,15 +84,15 @@ def load_data_predict(path, test_mode=True):
         merge_feature = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=merge_col)
         merge_target = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=[parameters.MERGE_COL])
         merge = pandas.merge(merge_feature, merge_target, left_index=True, right_index=True)
-        data, feature, target = merge_data_judge(end_off, merge,
-                                                 end_off_feature, merge_feature,
-                                                 end_off_target, merge_target)
         print("end_off.shape ->", end_off.shape)
         print("merge.shape ->", merge.shape)
         print("end_off_feature.shape ->", end_off_feature.shape)
         print("merge_feature.shape ->", merge_feature.shape)
         print("end_off_target.shape ->", end_off_target.shape)
         print("merge_target.shape ->", merge_target.shape)
+        data, feature, target = merge_data(end_off, merge,
+                                           end_off_feature, merge_feature,
+                                           end_off_target, merge_target)
         for i in range(count_groups):
             groups_feature.append(feature[divide_groups[i]:divide_groups[i + 1]])
             groups_target.append(target[divide_groups[i]:divide_groups[i + 1]])
@@ -96,13 +100,15 @@ def load_data_predict(path, test_mode=True):
         print("groups.shape ->", groups[0].shape)
         print("groups_feature.shape ->", groups_feature[0].shape)
         print("groups_target.shape ->", groups_target[0].shape)
-    print("count_groups =", len(divide_groups))
+    print("count_groups =", len(divide_groups) - 1, "\ncount_groups_end_off =", count_groups_end_off)
+    print("len(groups) =", len(groups))
     print("load data for predict done.")
     return groups, groups_feature, groups_target
 
 
 def load_data(path, test_mode=True):
-    print("load data...")
+    print("load data ...")
+    print("test_mode =", test_mode)
     print("data path ->", path)
     files = []
     for file in os.listdir(path):
@@ -147,5 +153,11 @@ def load_data(path, test_mode=True):
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data(path, test_mode=False)
-    groups, groups_feature, groups_target = merge_data_judge(end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target)
+    mode = False  # True for judge and False for predict
+    if mode:
+        end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data(path, test_mode=False)
+        groups, groups_feature, groups_target = merge_data(end_off, merge,
+                                                           end_off_feature, merge_feature,
+                                                           end_off_target, merge_target)
+    else:
+        load_data_predict(path, test_mode=False)

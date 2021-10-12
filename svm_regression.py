@@ -36,7 +36,7 @@ def cs_svm(data, feature, target, balance):
     # define evaluation procedure
     cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
     # evaluate model
-    scores = cross_val_score(svc, X_test, Y_test, scoring="roc_auc", cv=cv, n_jobs=4)
+    scores = cross_val_score(svc, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
     # summarize performance
     print("mean roc_auc: %.8f" % np.mean(scores))
     Linear.fit(np.array(X_train), np.array(Y_train))
@@ -80,10 +80,12 @@ def cs_svm(data, feature, target, balance):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    liner_regression_ols.plot_pred(preprocess.data_normalization(data), Linear, standard, "cs-svm")
+    data = preprocess.data_normalization(data)
+    liner_regression_ols.plot_pred(data, Linear, standard, "cs-svm")
 
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+                                                                                                       test_mode=True)
     cs_svm(end_off, end_off_feature, end_off_target, balance=False)
