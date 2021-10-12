@@ -25,6 +25,7 @@ def elastic_net(data, feature, target, mode):
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     Linear = BayesianRidge(compute_score=True, tol=1e-10, n_iter=10000, fit_intercept=True, normalize=False)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
     Y_pred = Linear.predict(X_test)
     print("explained_variance_score ->",

@@ -24,6 +24,7 @@ def pls_regression(data, feature, target, mode):
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     Linear = PLSRegression(n_components=10, scale=True, max_iter=50000, tol=1e-10, copy=True)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
     Y_pred = Linear.predict(X_test)
     print("explained_variance_score ->",

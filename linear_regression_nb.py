@@ -24,6 +24,7 @@ def pls_regression(data, feature, target, mode):
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     Linear = GaussianNB()
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     Linear.fit(np.array(X_train), np.array(Y_train))
     Y_pred = Linear.predict(X_test)
     print("explained_variance_score ->",
@@ -68,7 +69,7 @@ def pls_regression(data, feature, target, mode):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    liner_regression_ols.plot_pred(data, Linear, standard, "pls")
+    liner_regression_ols.plot_pred(data, Linear, standard, "gauss-nb")
 
 
 if __name__ == '__main__':

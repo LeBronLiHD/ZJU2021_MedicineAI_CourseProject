@@ -38,8 +38,8 @@ from scipy.interpolate import lagrange
 from imblearn.over_sampling import SMOTE
 
 
-def un_balance(X_train, Y_train):
-    model = SMOTE(random_state=0, sampling_strategy=0.5, k_neighbors=8, n_jobs=4)
+def un_balance(X_train, Y_train, ratio=0.5):
+    model = SMOTE(random_state=0, sampling_strategy=ratio, k_neighbors=8, n_jobs=4)
     X, Y = model.fit_resample(X_train, Y_train)
     return X, Y
 

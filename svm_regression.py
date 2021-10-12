@@ -1,11 +1,10 @@
-# -*-  coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 """
-regression the data using ElasticNet
+data regression using GaussianNB
 """
 
 
-from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import numpy as np
@@ -15,18 +14,32 @@ import preprocess
 from matplotlib import pyplot as plt
 import pandas
 import single_feature_distribution
-from sklearn.linear_model import ElasticNet
+from sklearn.naive_bayes import GaussianNB
+from sklearn.datasets import make_classification
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
 import liner_regression_ols
 
 
-def elastic_net(data, feature, target, mode):
+def cs_svm(data, feature, target, balance):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
-    Linear = ElasticNet(tol=1e-10, max_iter=100000, selection="cyclic")
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
-    Linear.fit(X_train, Y_train)
-    Y_pred = Linear.predict(X_test)
+    if balance:
+        X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio=0.5)
+    svc = SVC(gamma="scale", class_weight="balanced", tol=1e-10, degree=100)
+    Linear = make_pipeline(StandardScaler(), svc)
+    # define evaluation procedure
+    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    # evaluate model
+    scores = cross_val_score(svc, X_test, Y_test, scoring="roc_auc", cv=cv, n_jobs=4)
+    # summarize performance
+    print("mean roc_auc: %.8f" % np.mean(scores))
+    Linear.fit(np.array(X_train), np.array(Y_train))
+    Y_pred = Linear.predict(np.array(X_test))
     print("explained_variance_score ->",
           metrics.explained_variance_score(Y_test, Y_pred))
     print("mean_absolute_error ->",
@@ -41,10 +54,7 @@ def elastic_net(data, feature, target, mode):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    if mode:
-        standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
-    else:
-        standard = single_feature_distribution.get_n_largest(Y_pred, count)
+    standard = count/(size - count)
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
@@ -69,10 +79,10 @@ def elastic_net(data, feature, target, mode):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    liner_regression_ols.plot_pred(data, Linear, standard, "e-net")
+    liner_regression_ols.plot_pred(data, Linear, standard, "cs-svm")
 
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
-    elastic_net(end_off, end_off_feature, end_off_target, mode=True)
+    cs_svm(end_off, end_off_feature, end_off_target, balance=False)
