@@ -141,33 +141,33 @@ def plot_pred(data, model, standard, name):
     plt.subplot(1, 2, 1)
     pandas.plotting.andrews_curves(data_plot_pred, data_plot_pred.columns[data_plot_pred.shape[1] - 1],
                                    color=["moccasin", "cyan"], alpha=0.80)
-    plt.title(name + "andrews_predict")
+    plt.title(name + " andrews_predict")
     plt.subplot(1, 2, 2)
     pandas.plotting.andrews_curves(data_plot_real, data_plot_real.columns[data_plot_real.shape[1] - 1],
                                    color=["palegreen", "fuchsia"], alpha=0.80)
-    plt.title(name + "andrews_real_data")
+    plt.title(name + " andrews_real_data")
     plt.show()
 
     plt.figure()
     plt.subplot(1, 2, 1)
     pandas.plotting.parallel_coordinates(data_plot_pred, data_plot_pred.columns[data_plot_pred.shape[1] - 1],
                                          color=["palegreen", "fuchsia"], alpha=0.80)
-    plt.title(name + "parallel_real_data")
+    plt.title(name + " parallel_real_data")
     plt.subplot(1, 2, 2)
     pandas.plotting.parallel_coordinates(data_plot_real, data_plot_real.columns[data_plot_real.shape[1] - 1],
                                          color=["skyblue", "red"], alpha=0.80)
-    plt.title(name + "parallel_predict")
+    plt.title(name + " parallel_predict")
     plt.show()
 
     plt.figure()
     plt.subplot(1, 2, 1)
     pandas.plotting.radviz(data_plot_pred, data_plot_pred.columns[data_plot_pred.shape[1] - 1],
                            color=["skyblue", "red"], alpha=0.80)
-    plt.title(name + "radviz predict")
+    plt.title(name + " radviz predict")
     plt.subplot(1, 2, 2)
     pandas.plotting.radviz(data_plot_real, data_plot_real.columns[data_plot_real.shape[1] - 1],
                            color=["moccasin", "cyan"], alpha=0.80)
-    plt.title(name + "radviz real_data")
+    plt.title(name + " radviz real_data")
     plt.show()
     print("linear regression plot done.")
 
