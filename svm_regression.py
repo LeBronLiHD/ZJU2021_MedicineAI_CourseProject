@@ -27,13 +27,14 @@ import liner_regression_ols
 def cs_svm(data, feature, target, balance):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
+    feature = preprocess.data_normalization(feature)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     if balance:
         X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio=0.5)
     svc = SVC(gamma="scale", class_weight="balanced", tol=1e-10, degree=100)
     Linear = make_pipeline(StandardScaler(), svc)
     # define evaluation procedure
-    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=1)
+    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
     # evaluate model
     scores = cross_val_score(svc, X_test, Y_test, scoring="roc_auc", cv=cv, n_jobs=4)
     # summarize performance
@@ -79,7 +80,7 @@ def cs_svm(data, feature, target, balance):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    liner_regression_ols.plot_pred(data, Linear, standard, "cs-svm")
+    liner_regression_ols.plot_pred(preprocess.data_normalization(data), Linear, standard, "cs-svm")
 
 
 if __name__ == '__main__':

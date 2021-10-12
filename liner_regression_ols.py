@@ -111,7 +111,7 @@ def plot_pred(data, model, standard, name):
         select_col.append(data.columns[i])
     test = pandas.DataFrame(data, columns=select_col)
     print("test.shape ->", test.shape)
-    pred = model.predict(test)
+    pred = model.predict(np.array(test))
     data_plot = {
         "1": [i for i in range(data.shape[0])],
         "2": [i for i in range(data.shape[0])],
