@@ -20,7 +20,7 @@ from sklearn.linear_model import BayesianRidge
 import liner_regression_ols
 
 
-def elastic_net(data, feature, target):
+def elastic_net(data, feature, target, mode):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
@@ -41,7 +41,10 @@ def elastic_net(data, feature, target):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+    if mode:
+        standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+    else:
+        standard = single_feature_distribution.get_n_largest(Y_pred, count)
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
@@ -72,4 +75,4 @@ def elastic_net(data, feature, target):
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
-    elastic_net(end_off, end_off_feature, end_off_target)
+    elastic_net(end_off, end_off_feature, end_off_target, mode=True)

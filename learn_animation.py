@@ -28,7 +28,6 @@ def main():
         return line
 
     ani = FuncAnimation(fig, update, frames=np.linspace(-10, 10, num=100), init_func=init, interval=20)
-    # ani.save("learn_animation.png")
     plt.show()
 
 

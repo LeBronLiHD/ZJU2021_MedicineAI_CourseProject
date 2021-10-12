@@ -54,35 +54,35 @@ def get_best_divide_line(Y_pred, Y_test, count, size, show_image=False):
         data.at[i, "true"] = Y_test[Y_test.columns[0]].iat[i]
     data.sort_values("predict", inplace=True, ascending=False)
     TPR_FPR = pandas.DataFrame(index=range(size + 1), columns=("TP", "FP"))
-    F, T = count, size - count
+    F, T = size - count, count
     FP, TP = 0, 0
-    TPR_FPR.iloc[0] = [TP, FP]
-    docu_ROC.append(TP * FP)
+    TPR_FPR.iloc[0] = [FP, TP]
+    docu_ROC.append(0)
     for index in range(size):
-        standard = single_feature_distribution.get_n_largest(Y_pred, index + 1)
-        for i in range(size):
-            if Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 1:
-                confusion_matrix[1][1] += 1
-            elif Y_pred[i] < standard and Y_test[Y_test.columns[0]].iat[i] == 0:
-                confusion_matrix[0][0] += 1
-            elif Y_pred[i] < standard and Y_test[Y_test.columns[0]].iat[i] == 1:
-                confusion_matrix[1][0] += 1
-            elif Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 0:
-                confusion_matrix[0][1] += 1
-            else:
-                continue
         if show_image:
+            standard = single_feature_distribution.get_n_largest(Y_pred, index + 1)
+            for i in range(size):
+                if Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 1:
+                    confusion_matrix[1][1] += 1
+                elif Y_pred[i] < standard and Y_test[Y_test.columns[0]].iat[i] == 0:
+                    confusion_matrix[0][0] += 1
+                elif Y_pred[i] < standard and Y_test[Y_test.columns[0]].iat[i] == 1:
+                    confusion_matrix[1][0] += 1
+                elif Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 0:
+                    confusion_matrix[0][1] += 1
+                else:
+                    continue
             display_matrix(confusion_matrix)
-        TPR_FPR.iloc[index + 1] = [FP, TP]
+        TPR_FPR.iloc[index + 1] = [TP, FP]
         docu_ROC.append(TP * (1 - FP))
-        if Y_pred[index] >= standard and Y_test[Y_test.columns[0]].iat[index] == 1:
+        if Y_test[Y_test.columns[0]].iat[index] == 1:
             TP += 1 / T
-        elif Y_pred[index] >= standard and Y_test[Y_test.columns[0]].iat[index] == 0:
+        else:
             FP += 1 / F
     AUC = auc(TPR_FPR["FP"], TPR_FPR["TP"])
     plt.figure()
-    plt.scatter(x=TPR_FPR["FP"], y=TPR_FPR["TP"], label="(FPR,TPR)", color="orangered")
-    plt.plot(TPR_FPR["FP"], TPR_FPR["TP"], "orangered", label="AUC = %0.4f" % AUC)  # blueviolet
+    # plt.scatter(x=TPR_FPR["FP"], y=TPR_FPR["TP"], label="(FPR,TPR)", color="blueviolet")
+    plt.plot(TPR_FPR["FP"], TPR_FPR["TP"], "blueviolet", label="AUC = %0.4f" % AUC)  # blueviolet
     plt.legend(loc="lower right")
     plt.title("Receiver Operating Characteristic")
     plt.plot([(0, 0), (1, 1)], "r--")
@@ -93,9 +93,10 @@ def get_best_divide_line(Y_pred, Y_test, count, size, show_image=False):
     plt.show()
     print("AUC =", AUC)
     plt.figure()
-    plt.plot(X, docu_ROC, "blueviolet")
+    plt.plot(X, docu_ROC, "orangered")
     plt.xlabel("X from 0 to" + str(size + 1))
-    plt.ylabel("TP * FP")
+    plt.ylabel("TP * (1 - FP)")
+    plt.title("find the best standard")
     plt.show()
     best_index = X[np.argmax(docu_ROC)]
     return single_feature_distribution.get_n_largest(Y_pred, best_index)
@@ -171,11 +172,12 @@ def plot_pred(data, model, standard, name):
     print("linear regression plot done.")
 
 
-def ols_analysis(data, feature, target):
+def ols_analysis(data, feature, target, mode):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
-    X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.2, random_state=1)
+    X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     Linear = LinearRegression(fit_intercept=True, n_jobs=None, positive=False)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
     print("Slope ->")
     print(Linear.coef_)
@@ -196,7 +198,10 @@ def ols_analysis(data, feature, target):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    standard = get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+    if mode:
+        standard = get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+    else:
+        standard = single_feature_distribution.get_n_largest(Y_pred, count)
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
@@ -227,4 +232,4 @@ def ols_analysis(data, feature, target):
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path)
-    ols_analysis(end_off, end_off_feature, end_off_target)
+    ols_analysis(end_off, end_off_feature, end_off_target, mode=True)
