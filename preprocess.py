@@ -43,7 +43,7 @@ import tensorflow as tf
 import math
 
 
-def high_dimension_big(data, edge=False):
+def high_dimension_big_exp(data, edge=False):
     print("before reshaping ->", data.shape)
     print(type(data))
     data_expand = []
@@ -55,6 +55,49 @@ def high_dimension_big(data, edge=False):
                 if k == 0 or j == 0 or k == parameters.COLUMNS_BIG - 1 or j == parameters.COLUMNS_BIG - 1:
                     data_row.append(0)
                     continue
+                if ((j - 1) * (parameters.COLUMNS_BIG - 2) + (k - 1)) // parameters.REPEAT < data.shape[1]:
+                    data_row.append(data[data.columns[((j - 1) * (parameters.COLUMNS_BIG - 2) + (k - 1)) // parameters.REPEAT]].iat[i])
+                else:
+                    data_row.append(0)
+            data_unit.append(data_row)
+        data_expand.append(data_unit)
+    data_expand = tf.expand_dims(data_expand, 3)
+    print("after reshaping ->", numpy.shape(data_expand))
+    return data_expand
+
+
+def high_dimension_exp(data):
+    print("before reshaping ->", data.shape)
+    print(type(data))
+    data_expand = []
+    for i in range(data.shape[0]):
+        data_unit = []
+        for j in range(parameters.COLUMNS):
+            data_row = []
+            for k in range(parameters.COLUMNS):
+                if k == 0 or j == 0 or k == parameters.COLUMNS - 1 or j == parameters.COLUMNS - 1:
+                    data_row.append(0)
+                    continue
+                if (j - 1) * (parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
+                    data_row.append(data[data.columns[(j - 1) * (parameters.COLUMNS - 2) + (k - 1)]].iat[i])
+                else:
+                    data_row.append(0)
+            data_unit.append(data_row)
+        data_expand.append(data_unit)
+    data_expand = tf.expand_dims(data_expand, 3)
+    print("after reshaping ->", numpy.shape(data_expand))
+    return data_expand
+
+
+def high_dimension_big(data, edge=False):
+    print("before reshaping ->", data.shape)
+    print(type(data))
+    data_expand = []
+    for i in range(data.shape[0]):
+        data_unit = []
+        for j in range(parameters.COLUMNS_BIG - 2):
+            data_row = []
+            for k in range(parameters.COLUMNS_BIG - 2):
                 if (j * (parameters.COLUMNS_BIG - 2) + k) // parameters.REPEAT < data.shape[1]:
                     data_row.append(data[data.columns[(j * (parameters.COLUMNS_BIG - 2) + k) // parameters.REPEAT]].iat[i])
                 else:
@@ -72,14 +115,11 @@ def high_dimension(data):
     data_expand = []
     for i in range(data.shape[0]):
         data_unit = []
-        for j in range(parameters.COLUMNS):
+        for j in range(parameters.COLUMNS - 2):
             data_row = []
-            for k in range(parameters.COLUMNS):
-                if k == 0 or j == 0 or k == parameters.COLUMNS - 1 or j == parameters.COLUMNS - 1:
-                    data_row.append(0)
-                    continue
-                if (j - 1) * (parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
-                    data_row.append(data[data.columns[(j - 1) * (parameters.COLUMNS - 2) + (k - 1)]].iat[i])
+            for k in range(parameters.COLUMNS - 2):
+                if j * (parameters.COLUMNS - 2) + k < data.shape[1]:
+                    data_row.append(data[data.columns[j * (parameters.COLUMNS - 2) + k]].iat[i])
                 else:
                     data_row.append(0)
             data_unit.append(data_row)

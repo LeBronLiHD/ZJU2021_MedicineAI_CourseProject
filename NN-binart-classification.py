@@ -7,7 +7,7 @@ import parameters
 import load_data
 from keras.datasets import mnist
 from keras.models import Sequential, load_model
-from keras.layers.core import Dense, Dropout, Activation
+from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.utils import np_utils
 import os
 from sklearn.model_selection import train_test_split
@@ -43,7 +43,7 @@ def NN(data, feature, target):
 
     # building a linear stack of layers with the sequential model
     model = Sequential()
-    model.add(Dense(512, input_shape=(62,)))
+    model.add(Dense(1024, input_shape=(62,)))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(512))
@@ -56,31 +56,30 @@ def NN(data, feature, target):
     model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
     # training the model and saving metrics in history
-    epoch_number = 100
+    epoch_number = parameters.EPOCH_NUM
     history = model.fit(X_train, Y_train,
-                        batch_size=16, epochs=epoch_number,
+                        batch_size=32, epochs=epoch_number,
                         verbose=1,
-                        validation_data=0.1)
+                        validation_data=0.1,
+                        shuffle=True)
 
     # plotting the metrics
-    fig = plt.figure()
-    plt.subplot(2, 1, 1)
-    plt.plot(history.history['acc'])
-    plt.plot(history.history['val_acc'])
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='lower right')
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
 
-    plt.subplot(2, 1, 2)
+    # 绘制训练 & 验证的损失值
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper right')
-
-    plt.tight_layout()
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
 
     data_size = len(Y_train)
     print("train length ->", data_size)

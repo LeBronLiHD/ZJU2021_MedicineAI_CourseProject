@@ -95,6 +95,7 @@ def vertify_model(test, test_img, expect, total=10):
         data_piece = select_test[i]
         data_piece_img = select_test_img[i]
         data_piece = np.expand_dims(data_piece, 0)  # 扩展至四维
+        print(np.shape(data_piece))
         output = model.predict(data_piece)
         print("output ->", output)
         print("count ->", i, "   \t-> ", output.argmax())
@@ -113,38 +114,53 @@ def vertify_model(test, test_img, expect, total=10):
         plt.show()
 
 
-def CNN(data, data_feature, data_target, big=False):
+def CNN(data, data_feature, data_target, big=False, exp=False, ver=False):
     X_train, Y_train = data_feature, data_target
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     _, X_test, _, Y_test = train_test_split(X_train, Y_train, test_size=0.01, random_state=1)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_test_img = preprocess.data_normalization(X_test)
-    if big:
-        X_train, X_test, X_test_img = preprocess.high_dimension_big(X_train), \
-                                      preprocess.high_dimension_big(X_test), \
-                                      preprocess.high_dimension_big(X_test_img)
+    if exp:
+        if big:
+            X_train, X_test, X_test_img = preprocess.high_dimension_big_exp(X_train), \
+                                          preprocess.high_dimension_big_exp(X_test), \
+                                          preprocess.high_dimension_big_exp(X_test_img)
+        else:
+            X_train, X_test, X_test_img= preprocess.high_dimension_exp(X_train), \
+                                         preprocess.high_dimension_exp(X_test),\
+                                         preprocess.high_dimension_exp(X_test_img)
     else:
-        X_train, X_test, X_test_img= preprocess.high_dimension(X_train), \
-                                     preprocess.high_dimension(X_test),\
-                                     preprocess.high_dimension(X_test_img)
+        if big:
+            X_train, X_test, X_test_img = preprocess.high_dimension_big(X_train), \
+                                          preprocess.high_dimension_big(X_test), \
+                                          preprocess.high_dimension_big(X_test_img)
+        else:
+            X_train, X_test, X_test_img= preprocess.high_dimension(X_train), \
+                                         preprocess.high_dimension(X_test),\
+                                         preprocess.high_dimension(X_test_img)
     width, height = np.shape(X_train)[1], np.shape(X_train)[2]
     print("width =", width, "  height =", height)
 
     Y_test_list, Y_train_list = np.array(Y_test), np.array(Y_train)
     Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=3), to_categorical(Y_train_list, num_classes=3)
-    TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big)
-    vertify_model(X_test, X_test_img, Y_test_list, total=10)
+    TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
+    if ver:
+        print("ver ->", ver)
+        vertify_model(np.array(X_test), np.array(X_test_img), Y_test_list, total=10)
+    else:
+        print("ver ->", ver)
 
 
-def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False):
+def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, exp=False):
     i = parameters.EPOCH_NUM  # epoch number
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
-    model.add(Conv2D(filters=32, kernel_size=(2, 2), padding='same',
+    model.add(Conv2D(filters=32, kernel_size=(1, 1), padding='same',
                      input_shape=(width, height, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.2))
+    model.add(Dense(1024))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(512))
@@ -156,8 +172,8 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False):
     early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=75, mode='max')
     print("x_train.shape ->", np.shape(x_train))
     print("y_train.shape ->", np.shape(y_train))
-    history = model.fit(x_train, y_train, batch_size=36, epochs=i, verbose=1,
-                        callbacks=[early_stopping], validation_split=0.1)
+    history = model.fit(x_train, y_train, batch_size=32, epochs=i, verbose=1,
+                        callbacks=[early_stopping], validation_split=0.1, shuffle=True)
 
     # 4. 训练
     # 绘制训练 & 验证的准确率值
@@ -186,10 +202,16 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False):
     print('acc ->', score[1])
     # saving the model
     save_dir = parameters.MODEL_SAVE
-    if big:
-        model_name = "model_cnn_big_" + str(i) + "_" + str(score[1]) + ".h5"
+    if exp:
+        if big:
+            model_name = "model_cnn_big_exp_" + str(i) + "_" + str(score[1]) + ".h5"
+        else:
+            model_name = "model_cnn_exp_" + str(i) + "_" + str(score[1]) + ".h5"
     else:
-        model_name = "model_cnn_" + str(i) + "_" + str(score[1]) + ".h5"
+        if big:
+            model_name = "model_cnn_big_" + str(i) + "_" + str(score[1]) + ".h5"
+        else:
+            model_name = "model_cnn_" + str(i) + "_" + str(score[1]) + ".h5"
     model_path = os.path.join(save_dir, model_name)
     model.save(model_path)
     if not os.path.exists(save_dir):
@@ -209,5 +231,7 @@ if __name__ == '__main__':
                                                                end_off_target, merge_target)
     else:
         data, data_feature, data_target = end_off, end_off_feature, end_off_target
-    CNN(data, data_feature, data_target, big=False)
-    CNN(data, data_feature, data_target, big=True)
+    CNN(data, data_feature, data_target, big=False, exp=False, ver=False)
+    CNN(data, data_feature, data_target, big=True, exp=False, ver=False)
+    CNN(data, data_feature, data_target, big=False, exp=True, ver=False)
+    CNN(data, data_feature, data_target, big=True, exp=True, ver=False)
