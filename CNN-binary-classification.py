@@ -209,5 +209,5 @@ if __name__ == '__main__':
                                                                end_off_target, merge_target)
     else:
         data, data_feature, data_target = end_off, end_off_feature, end_off_target
-    # CNN(data, data_feature, data_target, big=False)
+    CNN(data, data_feature, data_target, big=False)
     CNN(data, data_feature, data_target, big=True)
