@@ -55,7 +55,7 @@ def single_feature(data, feature, target, show_image):
     correlation = [[], []]
     # X = [(i + 1) for i in range(parameters.END_OFF_COL - 1)]
     data_new = data.sample(frac=parameters.SAMPLE_RATIO_SINGLE).reset_index(drop=True)
-    data_new = preprocess.data_normalization(data_new)
+    data_new = preprocess.data_normalization(data_new, have_target=True)
     print("data_new.shape ->", data_new.shape)
     print("data_new & target ->", data_new.columns[data_new.shape[1] - 1], target.columns[0])
     for i in range(0, parameters.END_OFF_COL - 3):

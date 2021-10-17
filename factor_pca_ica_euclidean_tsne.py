@@ -35,7 +35,7 @@ def factor_analysis(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected)
+    data_selected = preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     model = decomposition.FactorAnalysis(n_components=parameters.N_COMPONENTS)
@@ -63,7 +63,7 @@ def PCA(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected)
+    data_selected = preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     model = decomposition.PCA(n_components=parameters.N_COMPONENTS)
@@ -92,7 +92,7 @@ def FastICA(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected)
+    data_selected = preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     model = decomposition.FastICA(n_components=parameters.N_COMPONENTS)
@@ -120,7 +120,7 @@ def euclidean(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected)
+    data_selected = preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     similarities = euclidean_distances(data_selected.iloc[:, :-1].values)
@@ -149,7 +149,7 @@ def tSNE(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected)
+    data_selected = preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     date_embedded = TSNE(n_components=2).fit_transform(data_selected.iloc[:, :-1])

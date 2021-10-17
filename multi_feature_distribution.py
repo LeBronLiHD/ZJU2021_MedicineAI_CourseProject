@@ -20,7 +20,7 @@ import single_feature_distribution
 
 def heatmap(data, important):
     data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
-    data = preprocess.data_normalization(data)
+    data = preprocess.data_normalization(data, have_target=True)
     print("data.shape ->", data.shape)
     important[0].append(data.shape[1] - 1)
     select_col = []
@@ -42,7 +42,7 @@ def multi_feature(data, important):
     print("multi-feature distribution...")
     # preprocessing
     data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
-    data = preprocess.data_normalization(data)
+    data = preprocess.data_normalization(data, have_target=True)
     print("data.shape ->", data.shape)
     important[0].append(data.shape[1] - 1)
     select_col = []

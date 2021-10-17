@@ -25,6 +25,8 @@ from sklearn.tree import DecisionTreeClassifier  # Import Decision Tree Classifi
 from sklearn.model_selection import train_test_split  # Import train_test_split function
 from sklearn import metrics
 import numpy as np
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import cross_val_score
 
 
 def decision_tree(data, feature, target):
@@ -33,10 +35,15 @@ def decision_tree(data, feature, target):
     feature = preprocess.data_normalization(feature)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     # Create Decision Tree classifer object
-    clf = DecisionTreeClassifier(criterion="gini", splitter="best")
+    clf = DecisionTreeClassifier(criterion="gini", splitter="best", max_features=None)
     # Train Decision Tree Classifer
-    X_train, Y_train= preprocess.un_balance(X_train, Y_train, ratio=1.0)
+    X_train, Y_train= preprocess.un_balance(X_train, Y_train, ratio="minority", mode=1, ensemble=False)
     clf.fit(X_train, Y_train)
+    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
+    # evaluate model
+    scores = cross_val_score(clf, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
+    # summarize performance
+    print("mean roc_auc: %.8f" % np.mean(scores))
     # Predict the response for test dataset
     Y_pred = clf.predict(X_test)
     print("explained_variance_score ->",
@@ -54,7 +61,7 @@ def decision_tree(data, feature, target):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    standard = count/(size - count)
+    standard = 0.5
     for i in range(size):
         if Y_pred[i] != 0 and Y_pred[i] != 1:
             print("fuck", end=" ")
@@ -82,8 +89,8 @@ def decision_tree(data, feature, target):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    data = preprocess.data_normalization(data)
-    liner_regression_ols.plot_pred(data, clf, standard, "clf")
+    data = preprocess.data_normalization(data, have_target=True)
+    liner_regression_ols.plot_pred(data, clf, standard, "de-tree")
 
 
 if __name__ == '__main__':

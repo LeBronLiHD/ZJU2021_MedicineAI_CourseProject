@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-data regression using SVM
+data regression using XGBoost
 """
 
 
@@ -10,37 +10,35 @@ from sklearn import metrics
 import numpy as np
 import parameters
 import load_data
+import warnings
 import preprocess
-from matplotlib import pyplot as plt
-import pandas
-import single_feature_distribution
-from sklearn.naive_bayes import GaussianNB
-from sklearn.datasets import make_classification
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+import xgboost as xgb
 import liner_regression_ols
+from sklearn.calibration import CalibratedClassifierCV
 
 
-def cs_svm(data, feature, target, balance):
+def XGBoost(data, feature, target, balance):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
     feature = preprocess.data_normalization(feature)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     if balance:
         X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority", mode=2, ensemble=False)
-    svc = SVC(gamma="scale", class_weight="balanced", tol=1e-10, degree=200, kernel="rbf")
-    Linear = make_pipeline(StandardScaler(), svc)
+    clf = xgb.XGBRFClassifier(max_depth=18)
+    model = CalibratedClassifierCV(clf, method='isotonic', cv=2)
     # define evaluation procedure
     cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
     # evaluate model
-    scores = cross_val_score(svc, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
+    scores = cross_val_score(model, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
     # summarize performance
     print("mean roc_auc: %.8f" % np.mean(scores))
-    Linear.fit(np.array(X_train), np.array(Y_train))
-    Y_pred = Linear.predict(np.array(X_test))
+    model.fit(np.array(X_train), np.array(Y_train))
+    Y_pred = model.predict(np.array(X_test))
     print("explained_variance_score ->",
           metrics.explained_variance_score(Y_test, Y_pred))
     print("mean_absolute_error ->",
@@ -55,6 +53,10 @@ def cs_svm(data, feature, target, balance):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
+    for i in range(size):
+        if Y_pred[i] != 0 and Y_pred[i] != 1:
+            print("fuck", end=" ")
+    # standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
     standard = 0.5
     print("standard =", standard)
     right = 0
@@ -81,11 +83,12 @@ def cs_svm(data, feature, target, balance):
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
     data = preprocess.data_normalization(data, have_target=True)
-    liner_regression_ols.plot_pred(data, Linear, standard, "cs-svm")
+    liner_regression_ols.plot_pred(data, model, standard, "xgb")
 
 
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=True)
-    cs_svm(end_off, end_off_feature, end_off_target, balance=False)
+    XGBoost(end_off, end_off_feature, end_off_target, balance=True)

@@ -68,7 +68,7 @@ def random_forest(data, feature, target, mode=True):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    data = preprocess.data_normalization(data)
+    data = preprocess.data_normalization(data, have_target=True)
     liner_regression_ols.plot_pred(data, forest, standard, "forest")
 
 

@@ -28,7 +28,7 @@ preprocess of data
     3. discretization of continuous data
     4. attribute structure, like BMI
 """
-
+import numpy
 import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
@@ -36,17 +36,76 @@ import load_data
 import parameters
 from scipy.interpolate import lagrange
 from imblearn.over_sampling import SMOTE
+from imblearn.over_sampling import SVMSMOTE
+from imblearn.over_sampling import RandomOverSampler
+from imblearn.under_sampling import NearMiss
+import tensorflow as tf
+import math
 
 
-def un_balance(X_train, Y_train, ratio=0.5):
-    model = SMOTE(random_state=0, sampling_strategy=ratio, k_neighbors=8, n_jobs=4)
+def high_dimension_big(data, edge=False):
+    print("before reshaping ->", data.shape)
+    print(type(data))
+    data_expand = []
+    for i in range(data.shape[0]):
+        data_unit = []
+        for j in range(parameters.COLUMNS_BIG):
+            data_row = []
+            for k in range(parameters.COLUMNS_BIG):
+                if k == 0 or j == 0 or k == parameters.COLUMNS_BIG - 1 or j == parameters.COLUMNS_BIG - 1:
+                    data_row.append(0)
+                    continue
+                if (j * (parameters.COLUMNS_BIG - 2) + k) // parameters.REPEAT < data.shape[1]:
+                    data_row.append(data[data.columns[(j * (parameters.COLUMNS_BIG - 2) + k) // parameters.REPEAT]].iat[i])
+                else:
+                    data_row.append(0)
+            data_unit.append(data_row)
+        data_expand.append(data_unit)
+    data_expand = tf.expand_dims(data_expand, 3)
+    print("after reshaping ->", numpy.shape(data_expand))
+    return data_expand
+
+
+def high_dimension(data):
+    print("before reshaping ->", data.shape)
+    print(type(data))
+    data_expand = []
+    for i in range(data.shape[0]):
+        data_unit = []
+        for j in range(parameters.COLUMNS):
+            data_row = []
+            for k in range(parameters.COLUMNS):
+                if k == 0 or j == 0 or k == parameters.COLUMNS - 1 or j == parameters.COLUMNS - 1:
+                    data_row.append(0)
+                    continue
+                if (j - 1) * (parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
+                    data_row.append(data[data.columns[(j - 1) * (parameters.COLUMNS - 2) + (k - 1)]].iat[i])
+                else:
+                    data_row.append(0)
+            data_unit.append(data_row)
+        data_expand.append(data_unit)
+    data_expand = tf.expand_dims(data_expand, 3)
+    print("after reshaping ->", numpy.shape(data_expand))
+    return data_expand
+
+
+def un_balance(X_train, Y_train, ratio="auto", mode=1, ensemble=False):
+    if ensemble == False:
+        if mode == 1:
+            model = SMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, n_jobs=4)
+        elif mode == 2:
+            model = SVMSMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, m_neighbors=16, n_jobs=4)
+        else:
+            model = RandomOverSampler(sampling_strategy=ratio, random_state=60)
+    else:
+        model = NearMiss(sampling_strategy=ratio, version=3, n_neighbors=8, n_neighbors_ver3=3, n_jobs=4)
     X, Y = model.fit_resample(X_train, Y_train)
     size = len(Y)
     count = 0
     for i in range(size):
         if Y.at[i, Y.columns[Y.shape[1] - 1]] == 1:
             count += 1
-    print("after SMOTE ->", count, size - count, count / size)
+    print("after im-balance ->", count, size - count, count / size)
     return X, Y
 
 
@@ -93,7 +152,7 @@ def data_cleaning(data):
     return data
 
 
-def data_normalization_maxmin(data):
+def data_normalization_maxmin(data, have_target=False):
     print("data normalization maxmin...")
     answer = []
     for i in range(data.shape[0]):
@@ -105,14 +164,16 @@ def data_normalization_maxmin(data):
     return data_nor
 
 
-def data_normalization(data):
+def data_normalization(data, have_target=False):
     print("data normalization...")
     answer = []
-    for i in range(data.shape[0]):
-        answer.append(data.at[i, data.columns[data.shape[1] - 1]])
+    if have_target:
+        for i in range(data.shape[0]):
+            answer.append(data.at[i, data.columns[data.shape[1] - 1]])
     data_nor = (data - data.mean())/data.std()
-    for i in range(data_nor.shape[0]):
-        data_nor.at[i, data.columns[data_nor.shape[1] - 1]] = answer[i]
+    if have_target:
+        for i in range(data_nor.shape[0]):
+            data_nor.at[i, data.columns[data_nor.shape[1] - 1]] = answer[i]
     print("data normalization done.")
     return data_nor
 
