@@ -21,7 +21,7 @@ matplotlib.use('agg')
 def NN(data, feature, target):
     X_train, Y_train = feature, target
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
-    _, X_test, _, Y_test = train_test_split(X_train, Y_train, test_size=0.1, random_state=1)
+    X_train, X_test, Y_train, Y_test = train_test_split(X_train, Y_train, test_size=0.1, random_state=1)
     X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     feature = np.array(feature)
     target = np.array(target)
@@ -43,7 +43,8 @@ def NN(data, feature, target):
 
     # building a linear stack of layers with the sequential model
     model = Sequential()
-    model.add(Dense(1024, input_shape=(62,)))
+    model.add(Dropout(0.2))
+    model.add(Dense(512, input_shape=(62,)))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(512))
@@ -60,7 +61,7 @@ def NN(data, feature, target):
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,
                         verbose=1,
-                        validation_data=0.1,
+                        validation_data=(X_test, Y_test),
                         shuffle=True)
 
     # plotting the metrics
