@@ -176,7 +176,7 @@ def ols_analysis(data, feature, target, mode):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
-    Linear = LinearRegression(fit_intercept=True, n_jobs=None, positive=False)
+    Linear = LinearRegression(fit_intercept=True, n_jobs=6, positive=False)
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
     print("Slope ->")

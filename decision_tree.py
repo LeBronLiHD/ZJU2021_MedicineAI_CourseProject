@@ -32,16 +32,15 @@ from sklearn.model_selection import cross_val_score
 def decision_tree(data, feature, target):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
-    feature = preprocess.data_normalization(feature)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     # Create Decision Tree classifer object
     clf = DecisionTreeClassifier(criterion="gini", splitter="best", max_features=None)
     # Train Decision Tree Classifer
     X_train, Y_train= preprocess.un_balance(X_train, Y_train, ratio="minority", mode=1, ensemble=False)
     clf.fit(X_train, Y_train)
-    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
     # evaluate model
-    scores = cross_val_score(clf, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
+    scores = cross_val_score(clf, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=6)
     # summarize performance
     print("mean roc_auc: %.8f" % np.mean(scores))
     # Predict the response for test dataset

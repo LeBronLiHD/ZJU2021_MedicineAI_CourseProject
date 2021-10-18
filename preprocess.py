@@ -132,9 +132,9 @@ def high_dimension(data):
 
 def transfer_to_image(data):
     for_show = []
-    for k in range(np.shape(data)[1]):
+    for k in range(np.shape(data)[0]):
         for_show_unit = []
-        for j in range(np.shape(data)[2]):
+        for j in range(np.shape(data)[1]):
             for_show_unit.append(data[k][j][0])
         for_show.append(for_show_unit)
     return for_show
@@ -143,47 +143,48 @@ def transfer_to_image(data):
 def test_high_dimension(feature, total=5):
     print("feature.shape ->", feature.shape)
     ratio = total/feature.shape[0]
+    feature = data_normalization(feature, have_target=False)
     feature = feature.sample(frac=ratio).reset_index(drop=True)
     print("feature_sample.shape ->", feature.shape)
     print("test high_dimension()")
-    one = high_dimension_exp(feature)
+    one = high_dimension(feature)
     print("test high_dimension_big()")
-    two = high_dimension_exp(feature)
+    two = high_dimension_big(feature)
     print("test high_dimension_exp()")
     three = high_dimension_exp(feature)
     print("test high_dimension_big_exp()")
-    four = high_dimension_exp(feature)
+    four = high_dimension_big_exp(feature)
     for i in range(total):
         plt.figure()
         plt.subplot(2, 2, 1)
         for_show = transfer_to_image(one[i])
         plt.imshow(for_show)
-        plt.title("none")
+        plt.ylabel("none")
         plt.subplot(2, 2, 2)
         for_show = transfer_to_image(two[i])
         plt.imshow(for_show)
-        plt.title("exp")
+        plt.ylabel("exp")
         plt.subplot(2, 2, 3)
         for_show = transfer_to_image(three[i])
         plt.imshow(for_show)
-        plt.title("big")
+        plt.ylabel("big")
         plt.subplot(2, 2, 4)
         for_show = transfer_to_image(four[i])
         plt.imshow(for_show)
-        plt.title("big_exp")
+        plt.ylabel("big_exp")
         plt.show()
 
 
 def un_balance(X_train, Y_train, ratio="auto", mode=1, ensemble=False):
     if ensemble == False:
         if mode == 1:
-            model = SMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, n_jobs=None)
+            model = SMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, n_jobs=6)
         elif mode == 2:
-            model = SVMSMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, m_neighbors=16, n_jobs=None)
+            model = SVMSMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, m_neighbors=16, n_jobs=6)
         else:
             model = RandomOverSampler(sampling_strategy=ratio, random_state=60)
     else:
-        model = NearMiss(sampling_strategy=ratio, version=3, n_neighbors=8, n_neighbors_ver3=3, n_jobs=None)
+        model = NearMiss(sampling_strategy=ratio, version=3, n_neighbors=8, n_neighbors_ver3=3, n_jobs=6)
     X, Y = model.fit_resample(X_train, Y_train)
     size = len(Y)
     count = 0

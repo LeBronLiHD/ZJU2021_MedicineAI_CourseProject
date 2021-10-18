@@ -20,7 +20,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
+from sklearn.svm import SVC, NuSVC
 import liner_regression_ols
 
 
@@ -31,12 +31,12 @@ def cs_svm(data, feature, target, balance):
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     if balance:
         X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority", mode=2, ensemble=False)
-    svc = SVC(gamma="scale", class_weight="balanced", tol=1e-10, degree=200, kernel="rbf")
+    svc = SVC(gamma="scale", class_weight="balanced", tol=1e-10, degree=200, kernel="rbf", verbose=1)
     Linear = make_pipeline(StandardScaler(), svc)
     # define evaluation procedure
-    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
     # evaluate model
-    scores = cross_val_score(svc, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
+    scores = cross_val_score(svc, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=6)
     # summarize performance
     print("mean roc_auc: %.8f" % np.mean(scores))
     Linear.fit(np.array(X_train), np.array(Y_train))

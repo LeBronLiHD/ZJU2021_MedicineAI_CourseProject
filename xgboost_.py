@@ -29,15 +29,17 @@ def XGBoost(data, feature, target, balance):
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     if balance:
         X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority", mode=2, ensemble=False)
-    clf = xgb.XGBRFClassifier(max_depth=18)
-    model = CalibratedClassifierCV(clf, method='isotonic', cv=2)
+    xgb.set_config(verbosity=1)
+    model = xgb.XGBClassifier(n_estimators=100, max_depth=10, eval_metric='mlogloss')
+    # model = CalibratedClassifierCV(XGB, method='isotonic', cv=2)
+    model.fit(np.array(X_train), np.array(Y_train))
+    print("model done.")
     # define evaluation procedure
-    cv = RepeatedStratifiedKFold(n_splits=10, n_repeats=20, random_state=0)
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
     # evaluate model
-    scores = cross_val_score(model, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=4)
+    scores = cross_val_score(model, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=6)
     # summarize performance
     print("mean roc_auc: %.8f" % np.mean(scores))
-    model.fit(np.array(X_train), np.array(Y_train))
     Y_pred = model.predict(np.array(X_test))
     print("explained_variance_score ->",
           metrics.explained_variance_score(Y_test, Y_pred))

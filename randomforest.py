@@ -12,18 +12,31 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_regression
 import single_feature_distribution
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RepeatedStratifiedKFold
 
 
 def random_forest(data, feature, target, mode=True):
     print("feature ->", feature.columns)
     print("target ->", target.columns)
-    feature = preprocess.data_normalization(feature)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
-    forest = RandomForestRegressor(n_estimators=200, criterion="mse", n_jobs=4)
-    X_train, Y_train= preprocess.un_balance(X_train, Y_train, ratio=0.75)
-    forest.fit(X_train, Y_train)
+    forest = RandomForestClassifier(n_estimators=100, criterion="gini", max_depth=10, max_features=None, n_jobs=6, verbose=1)
+    X_train, Y_train= preprocess.un_balance(X_train, Y_train, ratio="minority")
+    print("X_train.shape ->", X_train.shape)
+    print("Y_train.shape ->", Y_train.shape)
+    print("len(Y_train) ->", np.shape(np.array(Y_train.values.ravel())))
+    forest.fit(np.array(X_train), np.array(Y_train.values.ravel()))
+    # define evaluation procedure
+    print("model done.")
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
+    # evaluate model
+    scores = cross_val_score(forest, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv,
+                             n_jobs=6)
+    # summarize performance
+    print("mean roc_auc: %.8f" % np.mean(scores))
     # Predict the response for test dataset
     Y_pred = forest.predict(X_test)
     print("explained_variance_score ->",
