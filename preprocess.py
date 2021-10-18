@@ -177,13 +177,13 @@ def test_high_dimension(feature, total=5):
 def un_balance(X_train, Y_train, ratio="auto", mode=1, ensemble=False):
     if ensemble == False:
         if mode == 1:
-            model = SMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, n_jobs=4)
+            model = SMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, n_jobs=None)
         elif mode == 2:
-            model = SVMSMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, m_neighbors=16, n_jobs=4)
+            model = SVMSMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, m_neighbors=16, n_jobs=None)
         else:
             model = RandomOverSampler(sampling_strategy=ratio, random_state=60)
     else:
-        model = NearMiss(sampling_strategy=ratio, version=3, n_neighbors=8, n_neighbors_ver3=3, n_jobs=4)
+        model = NearMiss(sampling_strategy=ratio, version=3, n_neighbors=8, n_neighbors_ver3=3, n_jobs=None)
     X, Y = model.fit_resample(X_train, Y_train)
     size = len(Y)
     count = 0
