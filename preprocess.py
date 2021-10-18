@@ -40,6 +40,7 @@ from imblearn.over_sampling import SVMSMOTE
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import NearMiss
 import tensorflow as tf
+import matplotlib.pyplot as plt
 import math
 
 
@@ -127,6 +128,50 @@ def high_dimension(data):
     data_expand = tf.expand_dims(data_expand, 3)
     print("after reshaping ->", numpy.shape(data_expand))
     return data_expand
+
+
+def transfer_to_image(data):
+    for_show = []
+    for k in range(np.shape(data)[1]):
+        for_show_unit = []
+        for j in range(np.shape(data)[2]):
+            for_show_unit.append(data[k][j][0])
+        for_show.append(for_show_unit)
+    return for_show
+
+
+def test_high_dimension(feature, total=5):
+    print("feature.shape ->", feature.shape)
+    ratio = total/feature.shape[0]
+    feature = feature.sample(frac=ratio).reset_index(drop=True)
+    print("feature_sample.shape ->", feature.shape)
+    print("test high_dimension()")
+    one = high_dimension_exp(feature)
+    print("test high_dimension_big()")
+    two = high_dimension_exp(feature)
+    print("test high_dimension_exp()")
+    three = high_dimension_exp(feature)
+    print("test high_dimension_big_exp()")
+    four = high_dimension_exp(feature)
+    for i in range(total):
+        plt.figure()
+        plt.subplot(2, 2, 1)
+        for_show = transfer_to_image(one[i])
+        plt.imshow(for_show)
+        plt.title("none")
+        plt.subplot(2, 2, 2)
+        for_show = transfer_to_image(two[i])
+        plt.imshow(for_show)
+        plt.title("exp")
+        plt.subplot(2, 2, 3)
+        for_show = transfer_to_image(three[i])
+        plt.imshow(for_show)
+        plt.title("big")
+        plt.subplot(2, 2, 4)
+        for_show = transfer_to_image(four[i])
+        plt.imshow(for_show)
+        plt.title("big_exp")
+        plt.show()
 
 
 def un_balance(X_train, Y_train, ratio="auto", mode=1, ensemble=False):
@@ -222,4 +267,5 @@ if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=True)
+    test_high_dimension(end_off_feature)
     end_off_clean = data_cleaning(end_off)
