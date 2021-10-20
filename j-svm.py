@@ -23,7 +23,7 @@ import model_analysis
 
 def cs_svm(end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target):
     model, pca_model = train_cs_svm(merge_feature, merge_target, 3, balance=False)
-    # model_analysis.model_analysis(end_off_feature, end_off_target, model, end_off, 3, normal=True, pca=True, pca_model=pca_model)
+    model_analysis.model_analysis(end_off_feature, end_off_target, model, end_off, 3, normal=True, pca=True, pca_model=pca_model)
 
 
 def train_cs_svm(X_train, Y_train, mode=3, balance=True):

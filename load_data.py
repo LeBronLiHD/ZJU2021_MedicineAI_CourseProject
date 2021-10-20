@@ -157,8 +157,5 @@ if __name__ == '__main__':
     mode = False  # True for judge and False for predict
     if mode:
         end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data(path, test_mode=False)
-        data, data_feature, data_target = merge_data(end_off, merge,
-                                                     end_off_feature, merge_feature,
-                                                     end_off_target, merge_target)
     else:
         load_data_predict(path, test_mode=False)
