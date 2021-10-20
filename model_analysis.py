@@ -10,14 +10,14 @@ import preprocess
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas
-import single_feature_distribution
-import itertools
-from sklearn.metrics import auc
+from sklearn.decomposition import PCA
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
 
 
-def model_analysis(X_test, Y_test, model, data, mode, normal=True):
+def model_analysis(X_test, Y_test, model, data, mode, normal=True, pca=False, pca_model=None):
+    if pca:
+        X_test = pca_model.fit_transform(X_test.iloc[:, :-1])
     cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
     # evaluate model
     scores = cross_val_score(model, np.array(X_test), np.array(Y_test.values.ravel()),
@@ -74,10 +74,10 @@ def model_analysis(X_test, Y_test, model, data, mode, normal=True):
     Model_List_1_right_all[mode] = right / size
     if normal:
         data = preprocess.data_normalization(data, have_target=True)
-    plot_pred(data, model, standard, Model_List_1[mode])
+    plot_pred(data, model, standard, Model_List_1[mode], pca=pca, pca_model=pca_model)
 
 
-def plot_pred(data, model, standard, name):
+def plot_pred(data, model, standard, name, pca=False, pca_model=None):
     data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     select_col = []
@@ -86,6 +86,8 @@ def plot_pred(data, model, standard, name):
         select_col.append(data.columns[i])
     test = pandas.DataFrame(data, columns=select_col)
     print("test.shape ->", test.shape)
+    if pca:
+        test = pca_model.fit_transform(test.iloc[:, :-1])
     pred = model.predict(np.array(test))
     data_plot = {
         "1": [i for i in range(data.shape[0])],

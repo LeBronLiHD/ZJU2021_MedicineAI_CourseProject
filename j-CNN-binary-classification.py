@@ -25,6 +25,8 @@ from keras.utils.np_utils import to_categorical
 from keras.models import load_model
 import random
 import sys
+import time
+import model_analysis
 
 sys.dont_write_bytecode = True
 
@@ -115,7 +117,7 @@ def vertify_model(test, test_img, expect, total=10):
         plt.show()
 
 
-def CNN(X_train, Y_train, X_test, Y_test, big=False, exp=False, ver=False):
+def CNN(X_train, Y_train, X_test, Y_test, mode=5, big=False, exp=False, ver=False):
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_test_img = preprocess.data_normalization(X_test)
@@ -142,7 +144,10 @@ def CNN(X_train, Y_train, X_test, Y_test, big=False, exp=False, ver=False):
 
     Y_test_list, Y_train_list = np.array(Y_test), np.array(Y_train)
     Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=3), to_categorical(Y_train_list, num_classes=3)
+    init_time = time.time()
     TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
+    print("CNN done, time ->", time.time() - init_time)
+    model_analysis.Model_List_1_time[mode] = time.time() - init_time
     if ver:
         print("ver ->", ver)
         vertify_model(np.array(X_test), np.array(X_test_img), Y_test_list, total=10)
@@ -168,7 +173,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     model.add(Dense(3, activation='softmax'))
     model.compile(loss="categorical_crossentropy", optimizer="Adam", metrics=["accuracy"])
 
-    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=75, mode='max')
+    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=25, mode='max')
     print("x_train.shape ->", np.shape(x_train))
     print("y_train.shape ->", np.shape(y_train))
     history = model.fit(x_train, y_train, batch_size=32, epochs=i, verbose=1,
@@ -226,6 +231,6 @@ if __name__ == '__main__':
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=False, exp=False, ver=False)
-    CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=False, exp=True, ver=False)
+    CNN(merge_feature, merge_target, end_off_feature, end_off_target, mode=5, big=False, exp=True, ver=True)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=True, exp=False, ver=False)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=True, exp=True, ver=False)

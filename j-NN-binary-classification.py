@@ -15,6 +15,8 @@ import preprocess
 from tensorflow.keras.utils import to_categorical
 import tensorflow as tf
 import random
+import time
+import model_analysis
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 matplotlib.use('agg')
@@ -112,7 +114,8 @@ def vertify_model(test, expect, model, total=10):
 
 
 
-def NN(X_train, Y_train, X_test, Y_test):
+def NN(X_train, Y_train, X_test, Y_test, mode=4):
+    init_time = time.time()
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
@@ -185,7 +188,8 @@ def NN(X_train, Y_train, X_test, Y_test):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
     print('Saved trained model at %s ' % model_path)
-    print("train model done!")
+    print("NN done. time ->", time.time() - init_time)
+    model_analysis.Model_List_1_time[mode] = time.time() - init_time
     vertify_model(X_test, Y_test, model)
 
 
@@ -194,4 +198,4 @@ if __name__ == '__main__':
     test = False
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
-    NN(merge_feature, merge_target, end_off_feature, end_off_target)
+    NN(merge_feature, merge_target, end_off_feature, end_off_target, mode=4)

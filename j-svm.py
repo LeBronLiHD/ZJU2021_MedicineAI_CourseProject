@@ -7,85 +7,50 @@ data regression using SVM
 
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+from sklearn.decomposition import PCA
 import numpy as np
 import parameters
 import load_data
 import preprocess
-from matplotlib import pyplot as plt
-import pandas
-import single_feature_distribution
-from sklearn.naive_bayes import GaussianNB
-from sklearn.datasets import make_classification
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC, NuSVC
 import liner_regression_ols
+import time
+import model_analysis
 
 
-def cs_svm(data, feature, target, balance):
-    print("feature ->", feature.columns)
-    print("target ->", target.columns)
-    feature = preprocess.data_normalization(feature)
-    X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
+def cs_svm(end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target):
+    model, pca_model = train_cs_svm(merge_feature, merge_target, 3, balance=False)
+    # model_analysis.model_analysis(end_off_feature, end_off_target, model, end_off, 3, normal=True, pca=True, pca_model=pca_model)
+
+
+def train_cs_svm(X_train, Y_train, mode=3, balance=True):
+    init_time = time.time()
+    print("SVM training ...")
     if balance:
         X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority", mode=2, ensemble=False)
-    svc = SVC(gamma="scale", class_weight="balanced", tol=1e-10, degree=200, kernel="rbf", verbose=1)
+    PCA_model = PCA(n_components=30)
+    # X = model.fit_transform(data_selected.iloc[:, :-1])
+    X_train = PCA_model.fit_transform(X_train.iloc[:, :-1])
+    param_grid = {
+        "C": [5e1, 1e2, 5e2, 1e3, 5e3, 1e4, 5e4],
+        "gamma": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.01, 0.05]
+    }
+    clf = GridSearchCV(SVC(kernel="rbf", verbose=1, class_weight="balanced"), param_grid=param_grid)
+    clf.fit(np.array(X_train), np.array(Y_train.values.ravel()))
+    print("best estimator ->", clf.best_estimator_)
+    svc = SVC(kernel="rbf", verbose=1, class_weight="balance", C=clf.best_estimator_)
     Linear = make_pipeline(StandardScaler(), svc)
-    # define evaluation procedure
-    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
-    # evaluate model
-    scores = cross_val_score(svc, np.array(X_test), np.array(Y_test.values.ravel()), scoring="roc_auc", cv=cv, n_jobs=6)
-    # summarize performance
-    print("mean roc_auc: %.8f" % np.mean(scores))
     Linear.fit(np.array(X_train), np.array(Y_train))
-    Y_pred = Linear.predict(np.array(X_test))
-    print("explained_variance_score ->",
-          metrics.explained_variance_score(Y_test, Y_pred))
-    print("mean_absolute_error ->",
-          metrics.mean_absolute_error(Y_test, Y_pred))
-    print("mean_squared_error ->",
-          metrics.mean_squared_error(Y_test, Y_pred))
-    print("mean_standard_error ->",
-          np.sqrt(metrics.mean_squared_error(Y_test, Y_pred)))
-    size = len(Y_test)
-    count = 0
-    for i in range(size):
-        if Y_test[Y_test.columns[0]].iat[i] == 1:
-            count += 1
-    print(count, size - count)
-    standard = 0.5
-    print("standard =", standard)
-    right = 0
-    right_0_1 = [0, 0]
-    error_0_1 = [0, 0]
-    for i in range(size):
-        if Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 1:
-            right_0_1[1] += 1
-            right += 1
-        elif Y_pred[i] < standard and Y_test[Y_test.columns[0]].iat[i] == 0:
-            right_0_1[0] += 1
-            right += 1
-        elif Y_pred[i] < standard and Y_test[Y_test.columns[0]].iat[i] == 1:
-            error_0_1[1] += 1
-        elif Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 0:
-            error_0_1[0] += 1
-        else:
-            continue
-    print("right =", right)
-    print("fault =", size - right)
-    print("overall right ratio =", right / size)
-    print("0 right ratio =", right_0_1[0] / (size - count))
-    print("1 right ratio =", right_0_1[1] / count)
-    print("right_0_1 ->", right_0_1)
-    print("error_0_1 ->", error_0_1)
-    data = preprocess.data_normalization(data, have_target=True)
-    liner_regression_ols.plot_pred(data, Linear, standard, "cs-svm")
+    print("SVM done, time ->", time.time() - init_time)
+    model_analysis.Model_List_1_time[mode] = time.time() - init_time
+    return Linear, PCA_model
 
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
-                                                                                                       test_mode=True)
-    cs_svm(end_off, end_off_feature, end_off_target, balance=False)
+                                                                                                       test_mode=False)
+    cs_svm(end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target)
