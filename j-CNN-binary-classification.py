@@ -63,23 +63,24 @@ def vertify_model(test, test_img, expect, total=10):
     select_expect = []
     final_expect = []
     one, zero = 0, 0
+    size = len(expect)
     for i in range(total):
         if one > zero:
-            index = random.randrange(total)
+            index = random.randrange(size)
             while np.argmax(expect[index]) == 1:
-                index = random.randrange(total)
+                index = random.randrange(size)
             select_test.append(test[index])
             select_expect.append(expect[index])
             select_test_img.append(test_img[index])
         elif zero > one:
-            index = random.randrange(total)
+            index = random.randrange(size)
             while np.argmax(expect[index]) == 0:
-                index = random.randrange(total)
+                index = random.randrange(size)
             select_test.append(test[index])
             select_expect.append(expect[index])
             select_test_img.append(test_img[index])
         else:
-            index = random.randrange(total)
+            index = random.randrange(size)
             select_test.append(test[index])
             select_expect.append(expect[index])
             select_test_img.append(test_img[index])
@@ -114,10 +115,8 @@ def vertify_model(test, test_img, expect, total=10):
         plt.show()
 
 
-def CNN(data, data_feature, data_target, big=False, exp=False, ver=False):
-    X_train, Y_train = data_feature, data_target
+def CNN(X_train, Y_train, X_test, Y_test, big=False, exp=False, ver=False):
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
-    _, X_test, _, Y_test = train_test_split(X_train, Y_train, test_size=0.01, random_state=1)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_test_img = preprocess.data_normalization(X_test)
     if exp:
@@ -156,7 +155,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
-    model.add(Conv2D(filters=32, kernel_size=(1, 1), padding='same',
+    model.add(Conv2D(filters=32, kernel_size=(2, 2), padding='same',
                      input_shape=(width, height, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.2))
@@ -173,7 +172,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     print("x_train.shape ->", np.shape(x_train))
     print("y_train.shape ->", np.shape(y_train))
     history = model.fit(x_train, y_train, batch_size=32, epochs=i, verbose=1,
-                        callbacks=[early_stopping], validation_split=0.1, shuffle=True)
+                        callbacks=[early_stopping], validation_data=(x_test, y_test), shuffle=True)
 
     # 4. 训练
     # 绘制训练 & 验证的准确率值
@@ -223,16 +222,10 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
 
 if __name__ == '__main__':
     path = parameters.DATA_PATH
-    test = True
+    test = False
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
-    if test == False:
-        data, data_feature, data_target = load_data.merge_data(end_off, merge,
-                                                               end_off_feature, merge_feature,
-                                                               end_off_target, merge_target)
-    else:
-        data, data_feature, data_target = end_off, end_off_feature, end_off_target
-    CNN(data, data_feature, data_target, big=False, exp=False, ver=False)
-    CNN(data, data_feature, data_target, big=True, exp=False, ver=False)
-    CNN(data, data_feature, data_target, big=False, exp=True, ver=False)
-    CNN(data, data_feature, data_target, big=True, exp=True, ver=False)
+    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=False, exp=False, ver=False)
+    CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=False, exp=True, ver=False)
+    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=True, exp=False, ver=False)
+    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=True, exp=True, ver=False)
