@@ -17,9 +17,11 @@ import tensorflow as tf
 import random
 import time
 import model_analysis
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import cross_val_score
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-matplotlib.use('agg')
+matplotlib.use('TkAgg')
 
 
 def high_dimension_exp(data):
@@ -45,15 +47,30 @@ def high_dimension_exp(data):
     return data_expand
 
 
-def vertify_model(test, expect, model, total=10):
+def vertify_model(test, expect, total=10):
     print("test.shape ->", np.shape(test))
     print("expect.shape ->", np.shape(expect))
-    test_img = high_dimension_exp(test)
+    test_img = preprocess.data_normalization(test, have_target=False)
+    test_img = high_dimension_exp(test_img)
     print("test_img.shape ->", np.shape(test_img))
+    model_lists = os.listdir(parameters.MODEL_SAVE)
+    model_lists = sorted(model_lists,
+                         key=lambda files: os.path.getmtime(os.path.join(parameters.MODEL_SAVE, files)),
+                         reverse=False)
+    model_path_vertify = ""
+    for modelLists in os.listdir(parameters.MODEL_SAVE):
+        model_path_vertify = os.path.join(parameters.MODEL_SAVE, modelLists)
+        print(model_path_vertify)
 
+    if model_path_vertify == "":  # if the pwd is NULL
+        print("No model saved!")
+        exit()
+
+    model = load_model(model_path_vertify)
+    print("model loaded!")
     ones = []
     for i in range(len(expect)):
-        if expect[i] == 1:
+        if expect[i][0] == 1:
             ones.append(i)
     print("ones.length ->", len(ones))
 
@@ -66,24 +83,24 @@ def vertify_model(test, expect, model, total=10):
     for i in range(total):
         if one > zero:
             index = random.randrange(size)
-            while np.argmax(expect[index]) == 1:
+            while expect[index][0] == 1:
                 index = random.randrange(size)
             select_test.append(test[index])
-            select_expect.append(expect[index])
+            select_expect.append(expect[index][0])
             select_test_img.append(test_img[index])
         elif zero > one:
             index = random.randrange(size)
-            while np.argmax(expect[index]) == 0:
+            while expect[index][0] == 0:
                 index = random.randrange(size)
             select_test.append(test[index])
-            select_expect.append(expect[index])
+            select_expect.append(expect[index][0])
             select_test_img.append(test_img[index])
         else:
             index = random.randrange(size)
             select_test.append(test[index])
-            select_expect.append(expect[index])
+            select_expect.append(expect[index][0])
             select_test_img.append(test_img[index])
-        if np.argmax(select_expect[i]) == 0:
+        if select_expect[i] == 0:
             zero += 1
         else:
             one += 1
@@ -94,15 +111,16 @@ def vertify_model(test, expect, model, total=10):
     for i in range(len(select_test)):
         data_piece = select_test[i]
         data_piece_img = select_test_img[i]
-        print(np.shape(data_piece))
+        data_piece = np.expand_dims(data_piece, 0)
+        # print(np.shape(data_piece))
         output = model.predict(data_piece)
         print("output ->", output)
         print("count ->", i, "   \t-> ", output.argmax())
         plt.figure()
         for_show = []
-        for k in range(np.shape(select_test_img)[1]):
+        for k in range(np.shape(data_piece_img)[0]):
             for_show_unit = []
-            for j in range(np.shape(select_test_img)[2]):
+            for j in range(np.shape(data_piece_img)[1]):
                 for_show_unit.append(data_piece_img[k][j][0])
             for_show.append(for_show_unit)
         plt.imshow(for_show)
@@ -113,10 +131,10 @@ def vertify_model(test, expect, model, total=10):
         plt.show()
 
 
-
-def NN(X_train, Y_train, X_test, Y_test, mode=4):
+def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     init_time = time.time()
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
+    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
@@ -141,6 +159,9 @@ def NN(X_train, Y_train, X_test, Y_test, mode=4):
     model.add(Dense(1024))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
+    model.add(Dense(1024))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.2))
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
@@ -151,7 +172,7 @@ def NN(X_train, Y_train, X_test, Y_test, mode=4):
     model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
     # training the model and saving metrics in history
-    epoch_number = parameters.EPOCH_NUM
+    epoch_number = parameters.EPOCH_NN_NUM
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,
                         verbose=1,
@@ -159,7 +180,6 @@ def NN(X_train, Y_train, X_test, Y_test, mode=4):
                         shuffle=True)
 
     # plotting the metrics
-    history.history['accuracy'][0] = min(1.0, history.history['accuracy'][0])
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
@@ -169,6 +189,7 @@ def NN(X_train, Y_train, X_test, Y_test, mode=4):
     plt.show()
 
     # 绘制训练 & 验证的损失值
+    history.history['loss'][0] = min(1.0, history.history['loss'][0])
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')
@@ -193,7 +214,9 @@ def NN(X_train, Y_train, X_test, Y_test, mode=4):
     print('Saved trained model at %s ' % model_path)
     print("NN done. time ->", time.time() - init_time)
     model_analysis.Model_List_1_time[mode] = time.time() - init_time
-    vertify_model(X_test, Y_test, model)
+    vertify_model(np.array(X_t_test), np.array(Y_t_test))
+    model_analysis.model_analysis(X_t_test, Y_t_test, model, data, mode=mode, normal=False,
+                                  pca=False, pca_model=None, plot=False)
 
 
 if __name__ == '__main__':
@@ -201,4 +224,4 @@ if __name__ == '__main__':
     test = False
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
-    NN(merge_feature, merge_target, end_off_feature, end_off_target, mode=4)
+    NN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, mode=4)

@@ -117,8 +117,9 @@ def vertify_model(test, test_img, expect, total=10):
         plt.show()
 
 
-def CNN(X_train, Y_train, X_test, Y_test, mode=5, big=False, exp=False, ver=False):
+def CNN(X_train, Y_train, X_test, Y_test, data, mode=5, big=False, exp=False, ver=False):
     X_train, Y_train = preprocess.un_balance(X_train, Y_train)
+    X_test, Y_test = preprocess.un_balance(X_test, Y_test)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_test_img = preprocess.data_normalization(X_test)
     if exp:
@@ -145,7 +146,7 @@ def CNN(X_train, Y_train, X_test, Y_test, mode=5, big=False, exp=False, ver=Fals
     Y_test_list, Y_train_list = np.array(Y_test), np.array(Y_train)
     Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=3), to_categorical(Y_train_list, num_classes=3)
     init_time = time.time()
-    TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
+    model = TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
     print("CNN done, time ->", time.time() - init_time)
     model_analysis.Model_List_1_time[mode] = time.time() - init_time
     if ver:
@@ -164,6 +165,9 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
                      input_shape=(width, height, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.2))
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.2))
     model.add(Dense(1024))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
@@ -181,7 +185,6 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
 
     # 4. 训练
     # 绘制训练 & 验证的准确率值
-    history.history['accuracy'][0] = min(1.0, history.history['accuracy'][0])
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
@@ -191,6 +194,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     plt.show()
 
     # 绘制训练 & 验证的损失值
+    history.history['loss'][0] = min(1.0, history.history['loss'][0])
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')
@@ -223,6 +227,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
         os.makedirs(save_dir)
     print('Saved trained model at %s ' % model_path)
     print("train model done!")
+    return model
 
 
 if __name__ == '__main__':
@@ -230,7 +235,7 @@ if __name__ == '__main__':
     test = False
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
-    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=False, exp=False, ver=False)
-    CNN(merge_feature, merge_target, end_off_feature, end_off_target, mode=5, big=False, exp=True, ver=True)
-    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=True, exp=False, ver=False)
-    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, big=True, exp=True, ver=False)
+    CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=False, exp=False, ver=False)
+    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, mode=5, big=False, exp=True, ver=True)
+    CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=True, exp=False, ver=False)
+    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=True, exp=True, ver=False)
