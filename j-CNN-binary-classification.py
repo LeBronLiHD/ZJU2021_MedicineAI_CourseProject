@@ -27,13 +27,15 @@ import random
 import sys
 import time
 import model_analysis
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.model_selection import cross_val_score
 
 sys.dont_write_bytecode = True
 
 matplotlib.use('TkAgg')
 
 
-def vertify_model(test, test_img, expect, total=10):
+def vertify_model(test, test_img, expect, total=10, mode=5):
     print("test.shape ->", np.shape(test))
     print("test_img.shape ->", np.shape(test_img))
     print("expect.shape ->", np.shape(expect))
@@ -60,12 +62,50 @@ def vertify_model(test, test_img, expect, total=10):
             ones.append(i)
     print("ones.length ->", len(ones))
 
+    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
+    # evaluate model
+    scores = cross_val_score(model, np.array(test), np.array(expect),
+                             scoring="roc_auc", cv=cv, n_jobs=6)
+    # summarize performance
+    print("mean roc_auc: %.8f" % np.mean(scores))
+    model_analysis.Model_List_1_auc[mode] = np.mean(scores)
+    right = 0
+    right_0_1 = [0, 0]
+    error_0_1 = [0, 0]
+    size = len(test)
+    count = len(ones)
+    for i in range(size):
+        data_ana_piece = test[i]
+        data_ana_piece = np.expand_dims(data_ana_piece, 0)
+        output = model.predict(data_ana_piece)
+        if output.argmax() == expect[i][0]:
+            right += 1
+            if expect[i][0] == 0:
+                right_0_1[0] += 1
+            else:
+                right_0_1[1] += 1
+        else:
+            if expect[i][0] == 0:
+                error_0_1[0] += 1
+            else:
+                error_0_1[1] += 1
+            continue
+    print("right =", right)
+    print("fault =", size - right)
+    print("overall right ratio =", right / size)
+    print("0 right ratio =", right_0_1[0] / (size - count))
+    print("1 right ratio =", right_0_1[1] / count)
+    print("right_0_1 ->", right_0_1)
+    print("error_0_1 ->", error_0_1)
+    model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
+    model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
+    model_analysis.Model_List_1_right_all[mode] = right / size
+
     select_test = []
     select_test_img = []
     select_expect = []
     final_expect = []
     one, zero = 0, 0
-    size = len(expect)
     for i in range(total):
         if one > zero:
             index = random.randrange(size)
