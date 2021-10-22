@@ -233,7 +233,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     model.add(Dense(3, activation='softmax'))
     model.compile(loss="categorical_crossentropy", optimizer="Adam", metrics=["accuracy"])
 
-    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=25, mode='max')
+    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=8, mode='max')
     print("x_train.shape ->", np.shape(x_train))
     print("y_train.shape ->", np.shape(y_train))
     history = model.fit(x_train, y_train, batch_size=32, epochs=i, verbose=1,

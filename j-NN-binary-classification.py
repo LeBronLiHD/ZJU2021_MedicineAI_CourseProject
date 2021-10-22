@@ -9,6 +9,7 @@ from keras.datasets import mnist
 from keras.models import Sequential, load_model
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.utils import np_utils
+from keras.callbacks import EarlyStopping
 import os
 from sklearn.model_selection import train_test_split
 import preprocess
@@ -191,8 +192,8 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     print("Y_train shape ->", np.shape(Y_train))
     print("X_test shape ->", np.shape(X_test))
     print("Y_test shape ->", np.shape(Y_test))
-    X_train = X_train.astype('float32')
-    X_test = X_test.astype('float32')
+    X_train = X_train.astype('float64')
+    X_test = X_test.astype('float64')
     print(type(X_train))
     print(type(X_test))
 
@@ -218,10 +219,12 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
     # training the model and saving metrics in history
+    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=8, mode='max')
     epoch_number = parameters.EPOCH_NN_NUM
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,
                         verbose=1,
+                        callbacks=[early_stopping],
                         validation_data=(X_test, Y_test),
                         shuffle=True)
 
