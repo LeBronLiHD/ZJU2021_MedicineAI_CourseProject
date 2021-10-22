@@ -74,17 +74,19 @@ def vertify_model(test, expect, total=10, mode=4):
         print("No model saved!")
         exit()
 
+    print("model_select ->", model_path_vertify)
     model = load_model(model_path_vertify)
     print("model loaded!")
     ones = []
     for i in range(len(expect)):
-        if expect[i][0] == 1:
+        if np.argmax(expect[i]) == 1:
             ones.append(i)
     print("ones.length ->", len(ones))
 
     right = 0
     right_0_1 = [0, 0]
     error_0_1 = [0, 0]
+    impossible_r_e = [0, 0]
     test_pred = []
     test_test = []
     size = len(test)
@@ -95,20 +97,25 @@ def vertify_model(test, expect, total=10, mode=4):
         output = model.predict(data_ana_piece)
         test_pred.append(output.argmax())
         test_test.append(np.argmax(expect[i]))
-        if output.argmax() == expect[i][0]:
+        if output.argmax() == np.argmax(expect[i]):
             right += 1
-            if expect[i][0] == 0:
+            if np.argmax(expect[i]) == 0:
                 right_0_1[0] += 1
-            else:
+            elif np.argmax(expect[i]) == 1:
                 right_0_1[1] += 1
-        else:
-            if expect[i][0] == 0:
-                error_0_1[0] += 1
             else:
+                impossible_r_e[0] += 1
+        else:
+            if np.argmax(expect[i]) == 0:
+                error_0_1[0] += 1
+            elif np.argmax(expect[i]) == 1:
                 error_0_1[1] += 1
-            continue
+            else:
+                impossible_r_e[1] += 1
+        continue
 
     auc = cal_auc(test_pred, test_test)
+    print("auc ->", auc)
     model_analysis.Model_List_1_auc[mode] = auc
     print("right =", right)
     print("fault =", size - right)
@@ -117,6 +124,7 @@ def vertify_model(test, expect, total=10, mode=4):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
+    print("impossible_r_e ->", impossible_r_e)
     model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
     model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
     model_analysis.Model_List_1_right_all[mode] = right / size
@@ -179,8 +187,8 @@ def vertify_model(test, expect, total=10, mode=4):
 
 def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     init_time = time.time()
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio=1/3)
-    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio=1/3)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
+    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
@@ -219,7 +227,7 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
     # training the model and saving metrics in history
-    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=8, mode='max')
+    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=50, mode='max')
     epoch_number = parameters.EPOCH_NN_NUM
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,

@@ -62,6 +62,7 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
         print("No model saved!")
         exit()
 
+    print("model_select ->", model_path_vertify)
     model = load_model(model_path_vertify)
     print("model loaded!")
 
@@ -74,6 +75,7 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
     right = 0
     right_0_1 = [0, 0]
     error_0_1 = [0, 0]
+    impossible_r_e = [0, 0]
     size = len(test)
     count = len(ones)
     test_pred = []
@@ -90,17 +92,22 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
             right += 1
             if np.argmax(expect[i]) == 0:
                 right_0_1[0] += 1
-            else:
+            elif np.argmax(expect[i]) == 1:
                 right_0_1[1] += 1
+            else:
+                impossible_r_e[0] += 1
         else:
             if np.argmax(expect[i]) == 0:
                 error_0_1[0] += 1
-            else:
+            elif np.argmax(expect[i]) == 1:
                 error_0_1[1] += 1
-            continue
+            else:
+                impossible_r_e[1] += 1
+        continue
 
     auc = cal_auc(test_pred, test_test)
     model_analysis.Model_List_1_auc[mode] = auc
+    print("auc ->", auc)
     print("right =", right)
     print("fault =", size - right)
     print("overall right ratio =", right / size)
@@ -108,6 +115,7 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
+    print("impossible_r_e ->", impossible_r_e)
     model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
     model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
     model_analysis.Model_List_1_right_all[mode] = right / size
@@ -233,7 +241,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     model.add(Dense(3, activation='softmax'))
     model.compile(loss="categorical_crossentropy", optimizer="Adam", metrics=["accuracy"])
 
-    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=8, mode='max')
+    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=50, mode='max')
     print("x_train.shape ->", np.shape(x_train))
     print("y_train.shape ->", np.shape(y_train))
     history = model.fit(x_train, y_train, batch_size=32, epochs=i, verbose=1,
