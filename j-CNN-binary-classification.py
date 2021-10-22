@@ -241,6 +241,8 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
 
     # 4. 训练
     # 绘制训练 & 验证的准确率值
+    history.history['accuracy'][0] = min(0.0, history.history['accuracy'][0])
+    history.history['val_accuracy'][0] = min(0.0, history.history['val_accuracy'][0])
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
@@ -251,6 +253,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
 
     # 绘制训练 & 验证的损失值
     history.history['loss'][0] = min(1.0, history.history['loss'][0])
+    history.history['val_loss'][0] = min(1.0, history.history['val_loss'][0])
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')

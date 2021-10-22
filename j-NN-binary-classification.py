@@ -229,6 +229,8 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
                         shuffle=True)
 
     # plotting the metrics
+    history.history['accuracy'][0] = min(0.0, history.history['accuracy'][0])
+    history.history['val_accuracy'][0] = min(0.0, history.history['val_accuracy'][0])
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
@@ -239,6 +241,7 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
 
     # 绘制训练 & 验证的损失值
     history.history['loss'][0] = min(1.0, history.history['loss'][0])
+    history.history['val_loss'][0] = min(1.0, history.history['val_loss'][0])
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')
