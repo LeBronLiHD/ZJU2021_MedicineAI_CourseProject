@@ -19,9 +19,16 @@ import time
 import model_analysis
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
+from sklearn.metrics import roc_auc_score, roc_curve
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 matplotlib.use('TkAgg')
+
+
+def cal_auc(pred_proba, y_test):
+    fpr, tpr, _ = roc_curve(y_test, pred_proba)
+    roc_auc = roc_auc_score(y_test, pred_proba)
+    return roc_auc
 
 
 def high_dimension_exp(data):
@@ -74,22 +81,19 @@ def vertify_model(test, expect, total=10, mode=4):
             ones.append(i)
     print("ones.length ->", len(ones))
 
-    cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
-    # evaluate model
-    scores = cross_val_score(model, np.array(test), np.array(expect),
-                             scoring="roc_auc", cv=cv, n_jobs=6)
-    # summarize performance
-    print("mean roc_auc: %.8f" % np.mean(scores))
-    model_analysis.Model_List_1_auc[mode] = np.mean(scores)
     right = 0
     right_0_1 = [0, 0]
     error_0_1 = [0, 0]
+    test_pred = []
+    test_test = []
     size = len(test)
     count = len(ones)
     for i in range(size):
         data_ana_piece = test[i]
         data_ana_piece = np.expand_dims(data_ana_piece, 0)
         output = model.predict(data_ana_piece)
+        test_pred.append(output.argmax())
+        test_test.append(np.argmax(expect[i]))
         if output.argmax() == expect[i][0]:
             right += 1
             if expect[i][0] == 0:
@@ -102,6 +106,9 @@ def vertify_model(test, expect, total=10, mode=4):
             else:
                 error_0_1[1] += 1
             continue
+
+    auc = cal_auc(test_pred, test_test)
+    model_analysis.Model_List_1_auc[mode] = auc
     print("right =", right)
     print("fault =", size - right)
     print("overall right ratio =", right / size)
@@ -171,14 +178,15 @@ def vertify_model(test, expect, total=10, mode=4):
 
 def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     init_time = time.time()
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
-    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio=1/3)
+    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio=1/3)
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
     X_test = np.array(X_test)
     Y_test = np.array(Y_test)
     Y_train, Y_test = to_categorical(Y_train, num_classes=3), to_categorical(Y_test, num_classes=3)
+    Y_t_test = to_categorical(Y_t_test, num_classes=3)
     print("X_train shape ->", np.shape(X_train))
     print("Y_train shape ->", np.shape(Y_train))
     print("X_test shape ->", np.shape(X_test))
@@ -253,8 +261,6 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     print("NN done. time ->", time.time() - init_time)
     model_analysis.Model_List_1_time[mode] = time.time() - init_time
     vertify_model(np.array(X_t_test), np.array(Y_t_test))
-    model_analysis.model_analysis(X_t_test, Y_t_test, model, data, mode=mode, normal=False,
-                                  pca=False, pca_model=None, plot=False)
 
 
 if __name__ == '__main__':
