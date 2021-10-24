@@ -232,7 +232,6 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,
                         verbose=1,
-                        callbacks=[early_stopping],
                         validation_data=(X_test, Y_test),
                         shuffle=True)
 
