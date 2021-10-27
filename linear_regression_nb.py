@@ -17,6 +17,7 @@ import single_feature_distribution
 from sklearn.naive_bayes import GaussianNB
 from sklearn.cross_decomposition import PLSRegression
 import liner_regression_ols
+import model_analysis
 
 
 def pls_regression(data, feature, target, mode):
@@ -69,7 +70,7 @@ def pls_regression(data, feature, target, mode):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    liner_regression_ols.plot_pred(data, Linear, standard, "gauss-nb")
+    model_analysis.plot_pred(data, Linear, standard, "gauss-nb")
 
 
 if __name__ == '__main__':

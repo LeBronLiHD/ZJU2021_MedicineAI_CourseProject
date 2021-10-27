@@ -186,16 +186,14 @@ def vertify_model(test, expect, total=10, mode=4):
 
 
 def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
-    init_time = time.time()
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
-    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="auto")
+    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio="auto")
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
     X_test = np.array(X_test)
     Y_test = np.array(Y_test)
     Y_train, Y_test = to_categorical(Y_train, num_classes=3), to_categorical(Y_test, num_classes=3)
-    Y_t_test = to_categorical(Y_t_test, num_classes=3)
     print("X_train shape ->", np.shape(X_train))
     print("Y_train shape ->", np.shape(Y_train))
     print("X_test shape ->", np.shape(X_test))
@@ -204,7 +202,13 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     X_test = X_test.astype('float64')
     print(type(X_train))
     print(type(X_test))
+    TrainNNModel(X_train, Y_train, X_test, Y_test, mode=4)
+    Y_t_test = to_categorical(Y_t_test, num_classes=3)
+    vertify_model(np.array(X_t_test), np.array(Y_t_test))
 
+
+def TrainNNModel(X_train, Y_train, X_test, Y_test, mode=4):
+    init_time = time.time()
     # building a linear stack of layers with the sequential model
     model = Sequential()
     model.add(Dropout(0.2))
@@ -232,6 +236,7 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,
                         verbose=1,
+                        # validation_split=0.1,
                         validation_data=(X_test, Y_test),
                         shuffle=True)
 
@@ -273,7 +278,6 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     print('Saved trained model at %s ' % model_path)
     print("NN done. time ->", time.time() - init_time)
     model_analysis.Model_List_1_time[mode] = time.time() - init_time
-    vertify_model(np.array(X_t_test), np.array(Y_t_test))
 
 
 if __name__ == '__main__':

@@ -38,7 +38,7 @@ def decision_tree(end_off, merge, end_off_feature, merge_feature, end_off_target
                                   pca_model=pca_model)
 
 
-def train_decision_tree(X_train, Y_train, pca=False, n_com=30):
+def train_decision_tree(X_train, Y_train, pca=False, n_com=parameters.N_COMPONENTS):
     print("decision tree training...")
     init_time = time.time()
     # Create Decision Tree classifer object
