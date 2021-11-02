@@ -34,14 +34,14 @@ def train_cs_svm(X_train, Y_train, mode=3, balance=True):
     PCA_model = PCA(n_components=parameters.N_COMPONENTS)
     # X = model.fit_transform(data_selected.iloc[:, :-1])
     X_train = PCA_model.fit_transform(X_train.iloc[:, :-1])
-    param_grid = {
-        "C": [5e1, 1e2, 5e2, 1e3, 5e3],
-        "gamma": [0.001, 0.005, 0.01, 0.01, 0.05]
-    }
-    clf = GridSearchCV(SVC(kernel="rbf", verbose=1, class_weight="balanced"), param_grid=param_grid)
-    clf.fit(np.array(X_train), np.array(Y_train.values.ravel()))
-    print("best estimator ->", clf.best_estimator_)
-    svc = SVC(kernel="rbf", verbose=1, class_weight="balance", C=clf.best_estimator_)
+    # param_grid = {
+    #     "C": [5e1, 1e2, 5e2],
+    #     "gamma": [0.005, 0.01, 0.05]
+    # }
+    # clf = SVC(kernel="rbf", verbose=1, class_weight="balanced")
+    # clf.fit(np.array(X_train), np.array(Y_train.values.ravel()))
+    # print("best estimator ->", clf.best_estimator_)
+    svc = SVC(kernel="rbf", verbose=1, class_weight="balanced")
     Linear = make_pipeline(StandardScaler(), svc)
     Linear.fit(np.array(X_train), np.array(Y_train))
     print("SVM done, time ->", time.time() - init_time)

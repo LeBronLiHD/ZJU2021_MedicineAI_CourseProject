@@ -26,6 +26,11 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 matplotlib.use('TkAgg')
 
 
+def data_normalization(data):
+    data_nor = (data - np.mean(data))/np.std(data)
+    return data_nor
+
+
 def cal_auc(pred_proba, y_test):
     fpr, tpr, _ = roc_curve(y_test, pred_proba)
     roc_auc = roc_auc_score(y_test, pred_proba)
@@ -55,11 +60,14 @@ def high_dimension_exp(data):
     return data_expand
 
 
-def vertify_model(test, expect, total=10, mode=4):
+def vertify_model(test, expect, total=10, mode=4, nor_img=True):
     print("test.shape ->", np.shape(test))
     print("expect.shape ->", np.shape(expect))
-    test_img = preprocess.data_normalization(test, have_target=False)
-    test_img = high_dimension_exp(test_img)
+    if nor_img:
+        test_img = data_normalization(test)
+        test_img = high_dimension_exp(test_img)
+    else:
+        test_img = high_dimension_exp(test)
     print("test_img.shape ->", np.shape(test_img))
     model_lists = os.listdir(parameters.MODEL_SAVE)
     model_lists = sorted(model_lists,
@@ -97,6 +105,8 @@ def vertify_model(test, expect, total=10, mode=4):
         output = model.predict(data_ana_piece)
         test_pred.append(output.argmax())
         test_test.append(np.argmax(expect[i]))
+        if i % 200 == 0:
+            print("model analysis ... i =", i)
         if output.argmax() == np.argmax(expect[i]):
             right += 1
             if np.argmax(expect[i]) == 0:
@@ -140,19 +150,19 @@ def vertify_model(test, expect, total=10, mode=4):
             while expect[index][0] == 1:
                 index = random.randrange(size)
             select_test.append(test[index])
-            select_expect.append(expect[index][0])
+            select_expect.append(0)
             select_test_img.append(test_img[index])
         elif zero > one:
             index = random.randrange(size)
             while expect[index][0] == 0:
                 index = random.randrange(size)
             select_test.append(test[index])
-            select_expect.append(expect[index][0])
+            select_expect.append(1)
             select_test_img.append(test_img[index])
         else:
             index = random.randrange(size)
             select_test.append(test[index])
-            select_expect.append(expect[index][0])
+            select_expect.append(expect[index][1])
             select_test_img.append(test_img[index])
         if select_expect[i] == 0:
             zero += 1
@@ -185,15 +195,19 @@ def vertify_model(test, expect, total=10, mode=4):
         plt.show()
 
 
-def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="auto")
-    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio="auto")
+def NN(X_train, Y_train, X_t_test, Y_t_test, data, imbalance=False, mode=4):
+    if imbalance:
+        X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority")
+        X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio="minority")
+    else:
+        X_test, Y_test = X_t_test, Y_t_test
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
     X_test = np.array(X_test)
     Y_test = np.array(Y_test)
-    Y_train, Y_test = to_categorical(Y_train, num_classes=3), to_categorical(Y_test, num_classes=3)
+    Y_train, Y_test = to_categorical(Y_train, num_classes=parameters.NN_NUM_CLASS), \
+                      to_categorical(Y_test, num_classes=parameters.NN_NUM_CLASS)
     print("X_train shape ->", np.shape(X_train))
     print("Y_train shape ->", np.shape(Y_train))
     print("X_test shape ->", np.shape(X_test))
@@ -202,12 +216,19 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, mode=4):
     X_test = X_test.astype('float64')
     print(type(X_train))
     print(type(X_test))
-    TrainNNModel(X_train, Y_train, X_test, Y_test, mode=4)
-    Y_t_test = to_categorical(Y_t_test, num_classes=3)
-    vertify_model(np.array(X_t_test), np.array(Y_t_test))
+    TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance, mode=4)
+    Y_t_test = to_categorical(Y_t_test, num_classes=parameters.NN_NUM_CLASS)
+    vertify_model(np.array(X_t_test), np.array(Y_t_test), nor_img=True)
 
 
-def TrainNNModel(X_train, Y_train, X_test, Y_test, mode=4):
+def get_activation():
+    if parameters.NN_NUM_CLASS == 2:
+        return "sigmoid"
+    else:
+        return "softmax"
+
+
+def TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance=False, mode=4):
     init_time = time.time()
     # building a linear stack of layers with the sequential model
     model = Sequential()
@@ -224,21 +245,30 @@ def TrainNNModel(X_train, Y_train, X_test, Y_test, mode=4):
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(3))
-    model.add(Activation('softmax'))
+    model.add(Dense(parameters.NN_NUM_CLASS))
+    model.add(Activation(get_activation()))
 
     # compiling the sequential model
     model.compile(loss='categorical_crossentropy', metrics=['accuracy'], optimizer='adam')
 
     # training the model and saving metrics in history
-    early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=50, mode='max')
+    early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.001, patience=4, mode='min')
     epoch_number = parameters.EPOCH_NN_NUM
+    count = 0
+    for i in range(Y_train.shape[0]):
+        if np.argmax(Y_train[i]) == 1:
+            count += 1
+    class_weigh = {0: (Y_train.shape[0] - count)/Y_train.shape[0], 1: count/Y_train.shape[0]}
+    print(class_weigh)
     history = model.fit(X_train, Y_train,
                         batch_size=32, epochs=epoch_number,
                         verbose=1,
-                        # validation_split=0.1,
-                        validation_data=(X_test, Y_test),
+                        validation_split=0.1,
+                        # validation_data=(X_test, Y_test),
+                        # callbacks=[early_stopping],
+                        class_weight=class_weigh,
                         shuffle=True)
+    print(model.summary())
 
     # plotting the metrics
     history.history['accuracy'][0] = min(0.0, history.history['accuracy'][0])
@@ -285,4 +315,4 @@ if __name__ == '__main__':
     test = False
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
-    NN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, mode=4)
+    NN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, imbalance=True, mode=4)

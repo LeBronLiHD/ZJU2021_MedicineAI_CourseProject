@@ -177,8 +177,8 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
 
 
 def CNN(X_train, Y_train, X_t_test, Y_t_test, data, mode=5, big=False, exp=False, ver=False):
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio=1/3)
-    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio=1/3)
+    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority")
+    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio="minority")
     # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
     X_test_img = preprocess.data_normalization(X_test)
     if exp:
@@ -207,10 +207,11 @@ def CNN(X_train, Y_train, X_t_test, Y_t_test, data, mode=5, big=False, exp=False
     print("width =", width, "  height =", height)
 
     Y_test_list, Y_train_list = np.array(Y_test), np.array(Y_train)
-    Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=3), to_categorical(Y_train_list, num_classes=3)
-    Y_t_test = to_categorical(np.array(Y_t_test), num_classes=3)
+    Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=parameters.NN_NUM_CLASS), \
+                                to_categorical(Y_train_list, num_classes=parameters.NN_NUM_CLASS)
+    Y_t_test = to_categorical(np.array(Y_t_test), num_classes=parameters.NN_NUM_CLASS)
     init_time = time.time()
-    TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
+    # TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
     print("CNN done, time ->", time.time() - init_time)
     model_analysis.Model_List_1_time[mode] = time.time() - init_time
     if ver:
@@ -220,8 +221,15 @@ def CNN(X_train, Y_train, X_t_test, Y_t_test, data, mode=5, big=False, exp=False
         print("ver ->", ver)
 
 
+def get_activation():
+    if parameters.NN_NUM_CLASS == 2:
+        return "sigmoid"
+    else:
+        return "softmax"
+
+
 def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, exp=False):
-    i = parameters.EPOCH_NUM  # epoch number
+    epoch_i = parameters.EPOCH_NUM  # epoch number
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
@@ -238,14 +246,26 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(3, activation='softmax'))
+    model.add(Dense(parameters.NN_NUM_CLASS, activation=get_activation()))
     model.compile(loss="categorical_crossentropy", optimizer="Adam", metrics=["accuracy"])
-
+    # counts = np.bincount(y_train[:, 0])
     early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=50, mode='max')
     print("x_train.shape ->", np.shape(x_train))
     print("y_train.shape ->", np.shape(y_train))
-    history = model.fit(x_train, y_train, batch_size=32, epochs=i, verbose=1,
-                        callbacks=[early_stopping], validation_data=(x_test, y_test), shuffle=True)
+    count = 0
+    for i in range(y_train.shape[0]):
+        if np.argmax(y_train[i]) == 1:
+            count += 1
+    class_weigh = {0: (y_train.shape[0] - count) / y_train.shape[0], 1: count / y_train.shape[0]}
+    print("epoch ->", epoch_i)
+    history = model.fit(x_train, y_train, batch_size=32, epochs=epoch_i, verbose=1,
+                        callbacks=[early_stopping],
+                        validation_split=0.1,
+                        # validation_data=(x_test, y_test),
+                        class_weight=class_weigh,
+                        shuffle=True)
+    print(model.summary())
+
 
     # 4. 训练
     # 绘制训练 & 验证的准确率值
@@ -280,14 +300,14 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     save_dir = parameters.MODEL_SAVE
     if exp:
         if big:
-            model_name = "model_cnn_big_exp_" + str(i) + "_" + str(score[1]) + ".h5"
+            model_name = "model_cnn_big_exp_" + str(epoch_i) + "_" + str(score[1]) + ".h5"
         else:
-            model_name = "model_cnn_exp_" + str(i) + "_" + str(score[1]) + ".h5"
+            model_name = "model_cnn_exp_" + str(epoch_i) + "_" + str(score[1]) + ".h5"
     else:
         if big:
-            model_name = "model_cnn_big_" + str(i) + "_" + str(score[1]) + ".h5"
+            model_name = "model_cnn_big_" + str(epoch_i) + "_" + str(score[1]) + ".h5"
         else:
-            model_name = "model_cnn_" + str(i) + "_" + str(score[1]) + ".h5"
+            model_name = "model_cnn_" + str(epoch_i) + "_" + str(score[1]) + ".h5"
     model_path = os.path.join(save_dir, model_name)
     model.save(model_path)
     if not os.path.exists(save_dir):
@@ -301,7 +321,7 @@ if __name__ == '__main__':
     test = False
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
                                                                                                        test_mode=test)
-    CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=False, exp=False, ver=False)
+    # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=False, exp=False, ver=True)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, mode=5, big=False, exp=True, ver=True)
-    CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=True, exp=False, ver=False)
+    CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=True, exp=False, ver=True)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=True, exp=True, ver=False)

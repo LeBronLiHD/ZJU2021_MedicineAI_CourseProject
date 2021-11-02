@@ -175,7 +175,7 @@ def test_high_dimension(feature, total=5):
         plt.show()
 
 
-def un_balance(X_train, Y_train, ratio="auto", mode=1, ensemble=False):
+def un_balance(X_train, Y_train, ratio="minority", mode=1, ensemble=False):
     if ensemble == False:
         if mode == 1:
             model = SMOTE(random_state=60, sampling_strategy=ratio, k_neighbors=8, n_jobs=6)
