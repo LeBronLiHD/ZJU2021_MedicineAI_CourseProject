@@ -8,16 +8,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import numpy as np
-import parameters
-import load_data
-import preprocess
+import f_parameters
+import f_load_data
+import f_preprocess
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas
-import single_feature_distribution
+import f_single_feature_distribution
 import itertools
 from sklearn.metrics import auc
-import model_analysis
+import f_model_analysis
 
 
 def display_matrix(confusion_matrix):
@@ -61,7 +61,7 @@ def get_best_divide_line(Y_pred, Y_test, count, size, show_image=False):
     docu_ROC.append(0)
     for index in range(size):
         if show_image:
-            standard = single_feature_distribution.get_n_largest(Y_pred, index + 1)
+            standard = f_single_feature_distribution.get_n_largest(Y_pred, index + 1)
             for i in range(size):
                 if Y_pred[i] >= standard and Y_test[Y_test.columns[0]].iat[i] == 1:
                     confusion_matrix[1][1] += 1
@@ -100,7 +100,7 @@ def get_best_divide_line(Y_pred, Y_test, count, size, show_image=False):
     plt.title("find the best standard")
     plt.show()
     best_index = X[np.argmax(docu_ROC)]
-    return single_feature_distribution.get_n_largest(Y_pred, best_index)
+    return f_single_feature_distribution.get_n_largest(Y_pred, best_index)
 
 
 def ols_analysis(data, feature, target, mode):
@@ -108,7 +108,7 @@ def ols_analysis(data, feature, target, mode):
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     Linear = LinearRegression(fit_intercept=True, n_jobs=6, positive=False)
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
+    X_train, Y_train = f_preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
     print("Slope ->")
     print(Linear.coef_)
@@ -132,7 +132,7 @@ def ols_analysis(data, feature, target, mode):
     if mode:
         standard = get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
     else:
-        standard = single_feature_distribution.get_n_largest(Y_pred, count)
+        standard = f_single_feature_distribution.get_n_largest(Y_pred, count)
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
@@ -157,11 +157,11 @@ def ols_analysis(data, feature, target, mode):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    model_analysis.plot_pred(data, Linear, standard, "ols")
+    f_model_analysis.plot_pred(data, Linear, standard, "ols")
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    path = f_parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
     ols_analysis(end_off, end_off_feature, end_off_target, mode=True)

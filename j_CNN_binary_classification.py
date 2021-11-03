@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import load_data
-import parameters
-import liner_regression_ols
-import preprocess
+import f_load_data
+import f_parameters
+import r_ols
+import f_preprocess
 from keras.callbacks import EarlyStopping
 import filter
 import numpy as np
@@ -26,7 +26,7 @@ from keras.models import load_model
 import random
 import sys
 import time
-import model_analysis
+import f_model_analysis
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import roc_auc_score, roc_curve
@@ -49,13 +49,13 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
     print("test_img.shape ->", np.shape(test_img))
     print("expect.shape ->", np.shape(expect))
     # sort by last modified time
-    model_lists = os.listdir(parameters.MODEL_SAVE)
+    model_lists = os.listdir(f_parameters.MODEL_SAVE)
     model_lists = sorted(model_lists,
-                         key=lambda files: os.path.getmtime(os.path.join(parameters.MODEL_SAVE, files)),
+                         key=lambda files: os.path.getmtime(os.path.join(f_parameters.MODEL_SAVE, files)),
                          reverse=False)
     model_path_vertify = ""
-    for modelLists in os.listdir(parameters.MODEL_SAVE):
-        model_path_vertify = os.path.join(parameters.MODEL_SAVE, modelLists)
+    for modelLists in os.listdir(f_parameters.MODEL_SAVE):
+        model_path_vertify = os.path.join(f_parameters.MODEL_SAVE, modelLists)
         print(model_path_vertify)
 
     if model_path_vertify == "":  # if the pwd is NULL
@@ -106,7 +106,7 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
         continue
 
     auc = cal_auc(test_pred, test_test)
-    model_analysis.Model_List_1_auc[mode] = auc
+    f_model_analysis.Model_List_1_auc[mode] = auc
     print("auc ->", auc)
     print("right =", right)
     print("fault =", size - right)
@@ -116,9 +116,9 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
     print("impossible_r_e ->", impossible_r_e)
-    model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
-    model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
-    model_analysis.Model_List_1_right_all[mode] = right / size
+    f_model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
+    f_model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
+    f_model_analysis.Model_List_1_right_all[mode] = right / size
 
     select_test = []
     select_test_img = []
@@ -177,43 +177,43 @@ def vertify_model(test, test_img, expect, total=10, mode=5):
 
 
 def CNN(X_train, Y_train, X_t_test, Y_t_test, data, mode=5, big=False, exp=False, ver=False):
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority")
-    X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio="minority")
-    # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
-    X_test_img = preprocess.data_normalization(X_test)
+    X_train, Y_train = f_preprocess.un_balance(X_train, Y_train, ratio="minority")
+    X_test, Y_test = f_preprocess.un_balance(X_t_test, Y_t_test, ratio="minority")
+    # X_train, X_test = f_preprocess.data_normalization(X_train), f_preprocess.data_normalization(X_test)
+    X_test_img = f_preprocess.data_normalization(X_test)
     if exp:
         if big:
-            X_train, X_test, X_test_img, X_t_test = preprocess.high_dimension_big_exp(X_train), \
-                                                    preprocess.high_dimension_big_exp(X_test), \
-                                                    preprocess.high_dimension_big_exp(X_test_img), \
-                                                    preprocess.high_dimension_big_exp(X_t_test)
+            X_train, X_test, X_test_img, X_t_test = f_preprocess.high_dimension_big_exp(X_train), \
+                                                    f_preprocess.high_dimension_big_exp(X_test), \
+                                                    f_preprocess.high_dimension_big_exp(X_test_img), \
+                                                    f_preprocess.high_dimension_big_exp(X_t_test)
         else:
-            X_train, X_test, X_test_img, X_t_test = preprocess.high_dimension_exp(X_train), \
-                                                    preprocess.high_dimension_exp(X_test), \
-                                                    preprocess.high_dimension_exp(X_test_img), \
-                                                    preprocess.high_dimension_exp(X_t_test)
+            X_train, X_test, X_test_img, X_t_test = f_preprocess.high_dimension_exp(X_train), \
+                                                    f_preprocess.high_dimension_exp(X_test), \
+                                                    f_preprocess.high_dimension_exp(X_test_img), \
+                                                    f_preprocess.high_dimension_exp(X_t_test)
     else:
         if big:
-            X_train, X_test, X_test_img, X_t_test = preprocess.high_dimension_big(X_train), \
-                                                    preprocess.high_dimension_big(X_test), \
-                                                    preprocess.high_dimension_big(X_test_img), \
-                                                    preprocess.high_dimension_big(X_t_test)
+            X_train, X_test, X_test_img, X_t_test = f_preprocess.high_dimension_big(X_train), \
+                                                    f_preprocess.high_dimension_big(X_test), \
+                                                    f_preprocess.high_dimension_big(X_test_img), \
+                                                    f_preprocess.high_dimension_big(X_t_test)
         else:
-            X_train, X_test, X_test_img, X_t_test = preprocess.high_dimension(X_train), \
-                                                    preprocess.high_dimension(X_test), \
-                                                    preprocess.high_dimension(X_test_img), \
-                                                    preprocess.high_dimension(X_t_test)
+            X_train, X_test, X_test_img, X_t_test = f_preprocess.high_dimension(X_train), \
+                                                    f_preprocess.high_dimension(X_test), \
+                                                    f_preprocess.high_dimension(X_test_img), \
+                                                    f_preprocess.high_dimension(X_t_test)
     width, height = np.shape(X_train)[1], np.shape(X_train)[2]
     print("width =", width, "  height =", height)
 
     Y_test_list, Y_train_list = np.array(Y_test), np.array(Y_train)
-    Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=parameters.NN_NUM_CLASS), \
-                                to_categorical(Y_train_list, num_classes=parameters.NN_NUM_CLASS)
-    Y_t_test = to_categorical(np.array(Y_t_test), num_classes=parameters.NN_NUM_CLASS)
+    Y_test_list, Y_train_list = to_categorical(Y_test_list, num_classes=f_parameters.NN_NUM_CLASS), \
+                                to_categorical(Y_train_list, num_classes=f_parameters.NN_NUM_CLASS)
+    Y_t_test = to_categorical(np.array(Y_t_test), num_classes=f_parameters.NN_NUM_CLASS)
     init_time = time.time()
-    # TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
+    TrainCnnModel(np.array(X_train), Y_train_list, width, height, np.array(X_test), Y_test_list, big=big, exp=exp)
     print("CNN done, time ->", time.time() - init_time)
-    model_analysis.Model_List_1_time[mode] = time.time() - init_time
+    f_model_analysis.Model_List_1_time[mode] = time.time() - init_time
     if ver:
         print("ver ->", ver)
         vertify_model(np.array(X_t_test), np.array(X_test_img), Y_t_test, total=10)
@@ -222,14 +222,14 @@ def CNN(X_train, Y_train, X_t_test, Y_t_test, data, mode=5, big=False, exp=False
 
 
 def get_activation():
-    if parameters.NN_NUM_CLASS == 2:
+    if f_parameters.NN_NUM_CLASS == 2:
         return "sigmoid"
     else:
         return "softmax"
 
 
 def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, exp=False):
-    epoch_i = parameters.EPOCH_NUM  # epoch number
+    epoch_i = f_parameters.EPOCH_NUM  # epoch number
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
@@ -246,7 +246,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(parameters.NN_NUM_CLASS, activation=get_activation()))
+    model.add(Dense(f_parameters.NN_NUM_CLASS, activation=get_activation()))
     model.compile(loss="categorical_crossentropy", optimizer="Adam", metrics=["accuracy"])
     # counts = np.bincount(y_train[:, 0])
     early_stopping = EarlyStopping(monitor='val_accuracy', min_delta=0.0001, patience=50, mode='max')
@@ -259,7 +259,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     class_weigh = {0: (y_train.shape[0] - count) / y_train.shape[0], 1: count / y_train.shape[0]}
     print("epoch ->", epoch_i)
     history = model.fit(x_train, y_train, batch_size=32, epochs=epoch_i, verbose=1,
-                        callbacks=[early_stopping],
+                        # callbacks=[early_stopping],
                         validation_split=0.1,
                         # validation_data=(x_test, y_test),
                         class_weight=class_weigh,
@@ -297,7 +297,7 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
     score = model.evaluate(x_test, y_test)
     print('acc ->', score[1])
     # saving the model
-    save_dir = parameters.MODEL_SAVE
+    save_dir = f_parameters.MODEL_SAVE
     if exp:
         if big:
             model_name = "model_cnn_big_exp_" + str(epoch_i) + "_" + str(score[1]) + ".h5"
@@ -317,9 +317,9 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
+    path = f_parameters.DATA_PATH
     test = False
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=test)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=False, exp=False, ver=True)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, mode=5, big=False, exp=True, ver=True)

@@ -5,10 +5,10 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import numpy as np
 
-import liner_regression_ols
-import parameters
-import load_data
-import preprocess
+import r_ols
+import f_parameters
+import f_load_data
+import f_preprocess
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import pandas
@@ -17,7 +17,7 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
 
 
-def model_analysis(X_test, Y_test, model, data, mode, normal=True, pca=False, pca_model=None, plot=True):
+def f_model_analysis(X_test, Y_test, model, data, mode, normal=True, pca=False, pca_model=None, plot=True):
     if pca:
         X_test = pca_model.fit_transform(X_test.iloc[:, :-1])
     cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=0)
@@ -43,7 +43,7 @@ def model_analysis(X_test, Y_test, model, data, mode, normal=True, pca=False, pc
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+    standard = r_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
     if standard == 0 or standard == 1:
         standard = 0.5
     print("standard =", standard)
@@ -74,13 +74,13 @@ def model_analysis(X_test, Y_test, model, data, mode, normal=True, pca=False, pc
     Model_List_1_right_1[mode] = right_0_1[1] / count
     Model_List_1_right_all[mode] = right / size
     if normal:
-        data = preprocess.data_normalization(data, have_target=True)
+        data = f_preprocess.data_normalization(data, have_target=True)
     if plot:
         plot_pred(data, model, standard, Model_List_1[mode], pca=pca, pca_model=pca_model)
 
 
 def plot_pred(data, model, standard, name, pca=False, pca_model=None):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     select_col = []
     col_size = len(data.columns)

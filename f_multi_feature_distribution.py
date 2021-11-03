@@ -11,16 +11,16 @@ import pandas
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import load_data
-import parameters
-import preprocess
+import f_load_data
+import f_parameters
+import f_preprocess
 from sklearn.utils import shuffle
-import single_feature_distribution
+import f_single_feature_distribution
 
 
 def heatmap(data, important):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
-    data = preprocess.data_normalization(data, have_target=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = f_preprocess.data_normalization(data, have_target=True)
     print("data.shape ->", data.shape)
     important[0].append(data.shape[1] - 1)
     select_col = []
@@ -40,9 +40,9 @@ def heatmap(data, important):
 
 def multi_feature(data, important):
     print("multi-feature distribution...")
-    # preprocessing
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
-    data = preprocess.data_normalization(data, have_target=True)
+    # f_preprocessing
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = f_preprocess.data_normalization(data, have_target=True)
     print("data.shape ->", data.shape)
     important[0].append(data.shape[1] - 1)
     select_col = []
@@ -70,12 +70,12 @@ def multi_feature(data, important):
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    path = f_parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
     # end_off, merge, end_off_feature, merge_feature = \
-    #     preprocess.data_cleaning(end_off), preprocess.data_cleaning(merge), \
-    #     preprocess.data_cleaning(end_off_feature), preprocess.data_cleaning(merge_feature)
-    important, important_h = single_feature_distribution.single_feature(end_off, end_off_feature, end_off_target, False)
+    #     f_preprocess.data_cleaning(end_off), f_preprocess.data_cleaning(merge), \
+    #     f_preprocess.data_cleaning(end_off_feature), f_preprocess.data_cleaning(merge_feature)
+    important, important_h = f_single_feature_distribution.single_feature(end_off, end_off_feature, end_off_target, False)
     heatmap(end_off, important_h)
     multi_feature(end_off, important)

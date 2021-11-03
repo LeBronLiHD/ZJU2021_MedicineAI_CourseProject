@@ -11,13 +11,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import load_data
-import parameters
+import f_load_data
+import f_parameters
 import math
 import statistics
 import heapq
 
-import preprocess
+import f_preprocess
 
 
 def get_n_largest(list, n):
@@ -53,15 +53,15 @@ def get_correlation(data_1, col_1, data_2, col_2):
 def single_feature(data, feature, target, show_image):
     print("single feature distribution...")
     correlation = [[], []]
-    # X = [(i + 1) for i in range(parameters.END_OFF_COL - 1)]
-    data_new = data.sample(frac=parameters.SAMPLE_RATIO_SINGLE).reset_index(drop=True)
-    data_new = preprocess.data_normalization(data_new, have_target=True)
+    # X = [(i + 1) for i in range(f_parameters.END_OFF_COL - 1)]
+    data_new = data.sample(frac=f_parameters.SAMPLE_RATIO_SINGLE).reset_index(drop=True)
+    data_new = f_preprocess.data_normalization(data_new, have_target=True)
     print("data_new.shape ->", data_new.shape)
     print("data_new & target ->", data_new.columns[data_new.shape[1] - 1], target.columns[0])
-    for i in range(0, parameters.END_OFF_COL - 3):
+    for i in range(0, f_parameters.END_OFF_COL - 3):
         print("Y ->", target.columns[0], "\t\t\tX ->", feature.columns[i])
         correlation[0].append(i)
-        correlation[1].append(get_correlation(data_new, parameters.END_OFF_COL - 3, data_new, i))
+        correlation[1].append(get_correlation(data_new, f_parameters.END_OFF_COL - 3, data_new, i))
         if show_image:
             # look at an individual feature in Seaborn through a boxplot
             sns.boxplot(x=target.columns[0], y=feature.columns[i], data=data)
@@ -74,8 +74,8 @@ def single_feature(data, feature, target, show_image):
             plt.show()
     plt.figure()
     plt.plot(correlation[0], correlation[1], ".b")
-    standard = get_n_largest(correlation[1], parameters.EXP_CORR_TOP)
-    standard_h = get_n_largest(correlation[1], parameters.EXP_CORR_TOP_H)
+    standard = get_n_largest(correlation[1], f_parameters.EXP_CORR_TOP)
+    standard_h = get_n_largest(correlation[1], f_parameters.EXP_CORR_TOP_H)
     plt.plot(correlation[0], [standard] * len(correlation[0]), "-r")
     plt.xlabel("sequence number")
     plt.ylabel("correlation")
@@ -83,7 +83,7 @@ def single_feature(data, feature, target, show_image):
     plt.show()
     important = [[], []]
     important_h = [[], []]
-    for i in range(0, parameters.END_OFF_COL - 3):
+    for i in range(0, f_parameters.END_OFF_COL - 3):
         if correlation[1][i] >= standard:
             important[0].append(correlation[0][i])
             important[1].append(correlation[1][i])
@@ -122,7 +122,7 @@ def single_feature(data, feature, target, show_image):
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    path = f_parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
     single_feature(end_off, end_off_feature, end_off_target, False)

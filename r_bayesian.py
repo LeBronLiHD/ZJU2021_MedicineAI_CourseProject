@@ -9,16 +9,16 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import numpy as np
-import parameters
-import load_data
-import preprocess
+import f_parameters
+import f_load_data
+import f_preprocess
 from matplotlib import pyplot as plt
 import pandas
-import single_feature_distribution
+import f_single_feature_distribution
 from sklearn.linear_model import ElasticNet
 from sklearn.linear_model import BayesianRidge
-import liner_regression_ols
-import model_analysis
+import r_ols
+import f_model_analysis
 
 
 def elastic_net(data, feature, target, mode):
@@ -26,7 +26,7 @@ def elastic_net(data, feature, target, mode):
     print("target ->", target.columns)
     X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
     Linear = BayesianRidge(compute_score=True, tol=1e-10, n_iter=10000, fit_intercept=True, normalize=False)
-    X_train, Y_train = preprocess.un_balance(X_train, Y_train)
+    X_train, Y_train = f_preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
     Y_pred = Linear.predict(X_test)
     print("explained_variance_score ->",
@@ -44,9 +44,9 @@ def elastic_net(data, feature, target, mode):
             count += 1
     print(count, size - count)
     if mode:
-        standard = liner_regression_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+        standard = r_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
     else:
-        standard = single_feature_distribution.get_n_largest(Y_pred, count)
+        standard = f_single_feature_distribution.get_n_largest(Y_pred, count)
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
@@ -71,11 +71,11 @@ def elastic_net(data, feature, target, mode):
     print("1 right ratio =", right_0_1[1] / count)
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
-    model_analysis.plot_pred(data, Linear, standard, "bayesian")
+    f_model_analysis.plot_pred(data, Linear, standard, "bayesian")
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    path = f_parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
     elastic_net(end_off, end_off_feature, end_off_target, mode=True)

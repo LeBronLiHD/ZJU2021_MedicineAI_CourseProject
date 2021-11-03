@@ -15,16 +15,16 @@ from sklearn import manifold
 from sklearn.metrics import euclidean_distances
 from sklearn.manifold import TSNE
 import pandas
-import load_data
-import parameters
-import preprocess
+import f_load_data
+import f_parameters
+import f_preprocess
 from sklearn.utils import shuffle
-import single_feature_distribution
+import f_single_feature_distribution
 import matplotlib.pyplot as plt
 
 
 def factor_analysis(data, important):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     print("important[0] ->", important[0])
     important_copy = []
@@ -35,10 +35,10 @@ def factor_analysis(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected, have_target=True)
+    data_selected = f_preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
-    model = decomposition.FactorAnalysis(n_components=parameters.N_COMPONENTS)
+    model = decomposition.FactorAnalysis(n_components=f_parameters.N_COMPONENTS)
     X = model.fit_transform(data_selected.iloc[:, :-1].values)
     pos = pandas.DataFrame()
     pos['X'] = X[:, 0]
@@ -52,7 +52,7 @@ def factor_analysis(data, important):
 
 
 def PCA(data, important):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     print("important[0] ->", important[0])
     important_copy = []
@@ -63,10 +63,10 @@ def PCA(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected, have_target=True)
+    data_selected = f_preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
-    model = decomposition.PCA(n_components=parameters.N_COMPONENTS)
+    model = decomposition.PCA(n_components=f_parameters.N_COMPONENTS)
     X = model.fit_transform(data_selected.iloc[:, :-1])
     pos = pandas.DataFrame()
     pos['X'] = X[:, 0]
@@ -81,7 +81,7 @@ def PCA(data, important):
 
 
 def FastICA(data, important):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     print("important[0] ->", important[0])
     important_copy = []
@@ -92,10 +92,10 @@ def FastICA(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected, have_target=True)
+    data_selected = f_preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
-    model = decomposition.FastICA(n_components=parameters.N_COMPONENTS)
+    model = decomposition.FastICA(n_components=f_parameters.N_COMPONENTS)
     X = model.fit_transform(data_selected.iloc[:, :-1])
     pos = pandas.DataFrame()
     pos['X'] = X[:, 0]
@@ -109,7 +109,7 @@ def FastICA(data, important):
 
 
 def euclidean(data, important):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     print("important[0] ->", important[0])
     important_copy = []
@@ -120,7 +120,7 @@ def euclidean(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected, have_target=True)
+    data_selected = f_preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     similarities = euclidean_distances(data_selected.iloc[:, :-1].values)
@@ -138,7 +138,7 @@ def euclidean(data, important):
 
 
 def tSNE(data, important):
-    data = data.sample(frac=parameters.SAMPLE_RATIO).reset_index(drop=True)
+    data = data.sample(frac=f_parameters.SAMPLE_RATIO).reset_index(drop=True)
     print("data.shape ->", data.shape)
     print("important[0] ->", important[0])
     important_copy = []
@@ -149,7 +149,7 @@ def tSNE(data, important):
     for i in range(len(important_copy)):
         select_col.append(data.columns[important_copy[i]])
     data_selected = pandas.DataFrame(data, columns=select_col)
-    data_selected = preprocess.data_normalization(data_selected, have_target=True)
+    data_selected = f_preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
     date_embedded = TSNE(n_components=2).fit_transform(data_selected.iloc[:, :-1])
@@ -163,13 +163,13 @@ def tSNE(data, important):
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    path = f_parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
     # end_off, merge, end_off_feature, merge_feature = \
-    #     preprocess.data_cleaning(end_off), preprocess.data_cleaning(merge), \
-    #     preprocess.data_cleaning(end_off_feature), preprocess.data_cleaning(merge_feature)
-    important, important_h = single_feature_distribution.single_feature(end_off, end_off_feature, end_off_target, False)
+    #     f_preprocess.data_cleaning(end_off), f_preprocess.data_cleaning(merge), \
+    #     f_preprocess.data_cleaning(end_off_feature), f_preprocess.data_cleaning(merge_feature)
+    important, important_h = f_single_feature_distribution.single_feature(end_off, end_off_feature, end_off_target, False)
     factor_analysis(end_off, important_h)
     PCA(end_off, important_h)
     FastICA(end_off, important_h)

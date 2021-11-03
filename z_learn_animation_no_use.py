@@ -27,7 +27,9 @@ def main():
         line.set_data(x, y)
         return line
 
-    ani = FuncAnimation(fig, update, frames=np.linspace(-10, 10, num=100), init_func=init, interval=20)
+    frames = np.linspace(-10, 10, num=100)
+    frames.astype(int)
+    ani = FuncAnimation(fig, update, frames=frames, init_func=init, interval=20)
     plt.show()
 
 

@@ -5,7 +5,7 @@ load excel files
 """
 
 import os
-import parameters
+import f_parameters
 import pandas
 import openpyxl
 import warnings
@@ -28,7 +28,7 @@ def merge_data(end_off, merge, end_off_feature, merge_feature, end_off_target, m
     return data, feature, target
 
 
-def load_data_predict(path, test_mode=True):
+def f_load_data_predict(path, test_mode=True):
     print("load data for predict...")
     print("test_mode =", test_mode)
     files = []
@@ -60,10 +60,10 @@ def load_data_predict(path, test_mode=True):
     count_groups = len(divide_groups)
     divide_groups.append(len(basic_data_merge) + len(basic_data_end_off))
     if test_mode:
-        end_col = [i for i in range(2, parameters.END_OFF_COL)]
+        end_col = [i for i in range(2, f_parameters.END_OFF_COL)]
         end_off_feature = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1", usecols=end_col)
         end_off_target = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1",
-                                           usecols=[parameters.END_OFF_COL])
+                                           usecols=[f_parameters.END_OFF_COL])
         end_off = pandas.merge(end_off_feature, end_off_target, left_index=True, right_index=True)
         print("end_off.shape ->", end_off.shape)
         print("end_off_feature.shape ->", end_off_feature.shape)
@@ -76,14 +76,14 @@ def load_data_predict(path, test_mode=True):
         print("groups_feature.shape ->", groups_feature[0].shape)
         print("groups_target.shape ->", groups_target[0].shape)
     else:
-        end_col = [i for i in range(2, parameters.END_OFF_COL)]
-        merge_col = [i for i in range(4, parameters.MERGE_COL)]
+        end_col = [i for i in range(2, f_parameters.END_OFF_COL)]
+        merge_col = [i for i in range(4, f_parameters.MERGE_COL)]
         end_off_feature = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1", usecols=end_col)
         end_off_target = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1",
-                                           usecols=[parameters.END_OFF_COL])
+                                           usecols=[f_parameters.END_OFF_COL])
         end_off = pandas.merge(end_off_feature, end_off_target, left_index=True, right_index=True)
         merge_feature = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=merge_col)
-        merge_target = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=[parameters.MERGE_COL])
+        merge_target = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=[f_parameters.MERGE_COL])
         merge = pandas.merge(merge_feature, merge_target, left_index=True, right_index=True)
         print("end_off.shape ->", end_off.shape)
         print("merge.shape ->", merge.shape)
@@ -107,7 +107,7 @@ def load_data_predict(path, test_mode=True):
     return groups, groups_feature, groups_target
 
 
-def load_data(path, test_mode=True):
+def f_load_data(path, test_mode=True):
     print("load data ...")
     print("test_mode =", test_mode)
     print("data path ->", path)
@@ -115,23 +115,23 @@ def load_data(path, test_mode=True):
     for file in os.listdir(path):
         print(file)
         files.append(os.path.join(path, file))
-    end_col = [i for i in range(2, parameters.END_OFF_COL)]
-    merge_col = [i for i in range(4, parameters.MERGE_COL)]
+    end_col = [i for i in range(2, f_parameters.END_OFF_COL)]
+    merge_col = [i for i in range(4, f_parameters.MERGE_COL)]
     if test_mode:
         end_off_feature = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1", usecols=end_col)
         merge_feature = None  # pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=merge_col)
         end_off_target = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1",
-                                           usecols=[parameters.END_OFF_COL])
+                                           usecols=[f_parameters.END_OFF_COL])
         merge_target = None  # pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1",
-                             # usecols=[parameters.MERGE_COL])
+                             # usecols=[f_parameters.MERGE_COL])
         end_off = pandas.merge(end_off_feature, end_off_target, left_index=True, right_index=True)
         merge = None  # pandas.merge(merge_feature, merge_target, left_index=True, right_index=True)
     else:
         end_off_feature = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1", usecols=end_col)
         merge_feature = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=merge_col)
         end_off_target = pandas.read_excel(files[0], na_values="NaN", sheet_name="Sheet1",
-                                           usecols=[parameters.END_OFF_COL])
-        merge_target = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=[parameters.MERGE_COL])
+                                           usecols=[f_parameters.END_OFF_COL])
+        merge_target = pandas.read_excel(files[1], na_values="NaN", sheet_name="Sheet1", usecols=[f_parameters.MERGE_COL])
         end_off = pandas.merge(end_off_feature, end_off_target, left_index=True, right_index=True)
         merge = pandas.merge(merge_feature, merge_target, left_index=True, right_index=True)
     if test_mode:
@@ -153,9 +153,9 @@ def load_data(path, test_mode=True):
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
+    path = f_parameters.DATA_PATH
     mode = False  # True for judge and False for predict
     if mode:
-        end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data(path, test_mode=False)
+        end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data(path, test_mode=False)
     else:
-        load_data_predict(path, test_mode=False)
+        f_load_data_predict(path, test_mode=False)

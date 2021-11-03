@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-preprocess of data
+f_preprocess of data
 1. data cleaning
     1. missing value
         1. delete the piece of data
@@ -32,8 +32,8 @@ import numpy
 import numpy as np
 import pandas as pd
 from sklearn.utils import shuffle
-import load_data
-import parameters
+import f_load_data
+import f_parameters
 from scipy.interpolate import lagrange
 from imblearn.over_sampling import SMOTE
 from imblearn.over_sampling import SVMSMOTE
@@ -50,14 +50,14 @@ def high_dimension_big_exp(data, edge=False):
     data_expand = []
     for i in range(data.shape[0]):
         data_unit = []
-        for j in range(parameters.COLUMNS_BIG):
+        for j in range(f_parameters.COLUMNS_BIG):
             data_row = []
-            for k in range(parameters.COLUMNS_BIG):
-                if k == 0 or j == 0 or k == parameters.COLUMNS_BIG - 1 or j == parameters.COLUMNS_BIG - 1:
+            for k in range(f_parameters.COLUMNS_BIG):
+                if k == 0 or j == 0 or k == f_parameters.COLUMNS_BIG - 1 or j == f_parameters.COLUMNS_BIG - 1:
                     data_row.append(0)
                     continue
-                if ((j - 1) * (parameters.COLUMNS_BIG - 2) + (k - 1)) // parameters.REPEAT < data.shape[1]:
-                    data_row.append(data[data.columns[((j - 1) * (parameters.COLUMNS_BIG - 2) + (k - 1)) // parameters.REPEAT]].iat[i])
+                if ((j - 1) * (f_parameters.COLUMNS_BIG - 2) + (k - 1)) // f_parameters.REPEAT < data.shape[1]:
+                    data_row.append(data[data.columns[((j - 1) * (f_parameters.COLUMNS_BIG - 2) + (k - 1)) // f_parameters.REPEAT]].iat[i])
                 else:
                     data_row.append(0)
             data_unit.append(data_row)
@@ -73,14 +73,14 @@ def high_dimension_exp(data):
     data_expand = []
     for i in range(data.shape[0]):
         data_unit = []
-        for j in range(parameters.COLUMNS):
+        for j in range(f_parameters.COLUMNS):
             data_row = []
-            for k in range(parameters.COLUMNS):
-                if k == 0 or j == 0 or k == parameters.COLUMNS - 1 or j == parameters.COLUMNS - 1:
+            for k in range(f_parameters.COLUMNS):
+                if k == 0 or j == 0 or k == f_parameters.COLUMNS - 1 or j == f_parameters.COLUMNS - 1:
                     data_row.append(0)
                     continue
-                if (j - 1) * (parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
-                    data_row.append(data[data.columns[(j - 1) * (parameters.COLUMNS - 2) + (k - 1)]].iat[i])
+                if (j - 1) * (f_parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
+                    data_row.append(data[data.columns[(j - 1) * (f_parameters.COLUMNS - 2) + (k - 1)]].iat[i])
                 else:
                     data_row.append(0)
             data_unit.append(data_row)
@@ -96,11 +96,11 @@ def high_dimension_big(data, edge=False):
     data_expand = []
     for i in range(data.shape[0]):
         data_unit = []
-        for j in range(parameters.COLUMNS_BIG - 2):
+        for j in range(f_parameters.COLUMNS_BIG - 2):
             data_row = []
-            for k in range(parameters.COLUMNS_BIG - 2):
-                if (j * (parameters.COLUMNS_BIG - 2) + k) // parameters.REPEAT < data.shape[1]:
-                    data_row.append(data[data.columns[(j * (parameters.COLUMNS_BIG - 2) + k) // parameters.REPEAT]].iat[i])
+            for k in range(f_parameters.COLUMNS_BIG - 2):
+                if (j * (f_parameters.COLUMNS_BIG - 2) + k) // f_parameters.REPEAT < data.shape[1]:
+                    data_row.append(data[data.columns[(j * (f_parameters.COLUMNS_BIG - 2) + k) // f_parameters.REPEAT]].iat[i])
                 else:
                     data_row.append(0)
             data_unit.append(data_row)
@@ -116,11 +116,11 @@ def high_dimension(data):
     data_expand = []
     for i in range(data.shape[0]):
         data_unit = []
-        for j in range(parameters.COLUMNS - 2):
+        for j in range(f_parameters.COLUMNS - 2):
             data_row = []
-            for k in range(parameters.COLUMNS - 2):
-                if j * (parameters.COLUMNS - 2) + k < data.shape[1]:
-                    data_row.append(data[data.columns[j * (parameters.COLUMNS - 2) + k]].iat[i])
+            for k in range(f_parameters.COLUMNS - 2):
+                if j * (f_parameters.COLUMNS - 2) + k < data.shape[1]:
+                    data_row.append(data[data.columns[j * (f_parameters.COLUMNS - 2) + k]].iat[i])
                 else:
                     data_row.append(0)
             data_unit.append(data_row)
@@ -195,7 +195,7 @@ def un_balance(X_train, Y_train, ratio="minority", mode=1, ensemble=False):
     return X, Y
 
 
-def ployinterp_column(data_piece, index, cycle=parameters.INTER_CYCLE):
+def ployinterp_column(data_piece, index, cycle=f_parameters.INTER_CYCLE):
     values = data_piece[list(range(index - cycle, index)) + list(range(index + 1, index + cycle + 1))]  # extract value
     values = values[values.notnull()]
     return lagrange(values.index, list(values))(index)
@@ -265,8 +265,8 @@ def data_normalization(data, have_target=False):
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    path = f_parameters.DATA_PATH
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
     test_high_dimension(end_off_feature)
     end_off_clean = data_cleaning(end_off)

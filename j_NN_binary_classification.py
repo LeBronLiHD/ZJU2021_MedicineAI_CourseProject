@@ -3,8 +3,8 @@
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-import parameters
-import load_data
+import f_parameters
+import f_load_data
 from keras.datasets import mnist
 from keras.models import Sequential, load_model
 from keras.layers.core import Dense, Dropout, Activation, Flatten
@@ -12,12 +12,12 @@ from keras.utils import np_utils
 from keras.callbacks import EarlyStopping
 import os
 from sklearn.model_selection import train_test_split
-import preprocess
+import f_preprocess
 from tensorflow.keras.utils import to_categorical
 import tensorflow as tf
 import random
 import time
-import model_analysis
+import f_model_analysis
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import roc_auc_score, roc_curve
@@ -43,14 +43,14 @@ def high_dimension_exp(data):
     data_expand = []
     for i in range(np.shape(data)[0]):
         data_unit = []
-        for j in range(parameters.COLUMNS):
+        for j in range(f_parameters.COLUMNS):
             data_row = []
-            for k in range(parameters.COLUMNS):
-                if k == 0 or j == 0 or k == parameters.COLUMNS - 1 or j == parameters.COLUMNS - 1:
+            for k in range(f_parameters.COLUMNS):
+                if k == 0 or j == 0 or k == f_parameters.COLUMNS - 1 or j == f_parameters.COLUMNS - 1:
                     data_row.append(0)
                     continue
-                if (j - 1) * (parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
-                    data_row.append(data[i][(j - 1) * (parameters.COLUMNS - 2) + (k - 1)])
+                if (j - 1) * (f_parameters.COLUMNS - 2) + (k - 1) < data.shape[1]:
+                    data_row.append(data[i][(j - 1) * (f_parameters.COLUMNS - 2) + (k - 1)])
                 else:
                     data_row.append(0)
             data_unit.append(data_row)
@@ -69,13 +69,13 @@ def vertify_model(test, expect, total=10, mode=4, nor_img=True):
     else:
         test_img = high_dimension_exp(test)
     print("test_img.shape ->", np.shape(test_img))
-    model_lists = os.listdir(parameters.MODEL_SAVE)
+    model_lists = os.listdir(f_parameters.MODEL_SAVE)
     model_lists = sorted(model_lists,
-                         key=lambda files: os.path.getmtime(os.path.join(parameters.MODEL_SAVE, files)),
+                         key=lambda files: os.path.getmtime(os.path.join(f_parameters.MODEL_SAVE, files)),
                          reverse=False)
     model_path_vertify = ""
-    for modelLists in os.listdir(parameters.MODEL_SAVE):
-        model_path_vertify = os.path.join(parameters.MODEL_SAVE, modelLists)
+    for modelLists in os.listdir(f_parameters.MODEL_SAVE):
+        model_path_vertify = os.path.join(f_parameters.MODEL_SAVE, modelLists)
         print(model_path_vertify)
 
     if model_path_vertify == "":  # if the pwd is NULL
@@ -126,7 +126,7 @@ def vertify_model(test, expect, total=10, mode=4, nor_img=True):
 
     auc = cal_auc(test_pred, test_test)
     print("auc ->", auc)
-    model_analysis.Model_List_1_auc[mode] = auc
+    f_model_analysis.Model_List_1_auc[mode] = auc
     print("right =", right)
     print("fault =", size - right)
     print("overall right ratio =", right / size)
@@ -135,9 +135,9 @@ def vertify_model(test, expect, total=10, mode=4, nor_img=True):
     print("right_0_1 ->", right_0_1)
     print("error_0_1 ->", error_0_1)
     print("impossible_r_e ->", impossible_r_e)
-    model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
-    model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
-    model_analysis.Model_List_1_right_all[mode] = right / size
+    f_model_analysis.Model_List_1_right_0[mode] = right_0_1[0] / (size - count)
+    f_model_analysis.Model_List_1_right_1[mode] = right_0_1[1] / count
+    f_model_analysis.Model_List_1_right_all[mode] = right / size
 
     select_test = []
     select_test_img = []
@@ -197,17 +197,17 @@ def vertify_model(test, expect, total=10, mode=4, nor_img=True):
 
 def NN(X_train, Y_train, X_t_test, Y_t_test, data, imbalance=False, mode=4):
     if imbalance:
-        X_train, Y_train = preprocess.un_balance(X_train, Y_train, ratio="minority")
-        X_test, Y_test = preprocess.un_balance(X_t_test, Y_t_test, ratio="minority")
+        X_train, Y_train = f_preprocess.un_balance(X_train, Y_train, ratio="minority")
+        X_test, Y_test = f_preprocess.un_balance(X_t_test, Y_t_test, ratio="minority")
     else:
         X_test, Y_test = X_t_test, Y_t_test
-    # X_train, X_test = preprocess.data_normalization(X_train), preprocess.data_normalization(X_test)
+    # X_train, X_test = f_preprocess.data_normalization(X_train), f_preprocess.data_normalization(X_test)
     X_train = np.array(X_train)
     Y_train = np.array(Y_train)
     X_test = np.array(X_test)
     Y_test = np.array(Y_test)
-    Y_train, Y_test = to_categorical(Y_train, num_classes=parameters.NN_NUM_CLASS), \
-                      to_categorical(Y_test, num_classes=parameters.NN_NUM_CLASS)
+    Y_train, Y_test = to_categorical(Y_train, num_classes=f_parameters.NN_NUM_CLASS), \
+                      to_categorical(Y_test, num_classes=f_parameters.NN_NUM_CLASS)
     print("X_train shape ->", np.shape(X_train))
     print("Y_train shape ->", np.shape(Y_train))
     print("X_test shape ->", np.shape(X_test))
@@ -217,12 +217,12 @@ def NN(X_train, Y_train, X_t_test, Y_t_test, data, imbalance=False, mode=4):
     print(type(X_train))
     print(type(X_test))
     TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance, mode=4)
-    Y_t_test = to_categorical(Y_t_test, num_classes=parameters.NN_NUM_CLASS)
+    Y_t_test = to_categorical(Y_t_test, num_classes=f_parameters.NN_NUM_CLASS)
     vertify_model(np.array(X_t_test), np.array(Y_t_test), nor_img=True)
 
 
 def get_activation():
-    if parameters.NN_NUM_CLASS == 2:
+    if f_parameters.NN_NUM_CLASS == 2:
         return "sigmoid"
     else:
         return "softmax"
@@ -245,7 +245,7 @@ def TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance=False, mode=4):
     model.add(Dense(512))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(parameters.NN_NUM_CLASS))
+    model.add(Dense(f_parameters.NN_NUM_CLASS))
     model.add(Activation(get_activation()))
 
     # compiling the sequential model
@@ -253,7 +253,7 @@ def TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance=False, mode=4):
 
     # training the model and saving metrics in history
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.001, patience=4, mode='min')
-    epoch_number = parameters.EPOCH_NN_NUM
+    epoch_number = f_parameters.EPOCH_NN_NUM
     count = 0
     for i in range(Y_train.shape[0]):
         if np.argmax(Y_train[i]) == 1:
@@ -299,7 +299,7 @@ def TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance=False, mode=4):
     score = model.evaluate(X_test, Y_test)
     print('acc ->', score[1])
     # saving the model
-    save_dir = parameters.MODEL_SAVE
+    save_dir = f_parameters.MODEL_SAVE
     model_name = "model_simple_" + str(epoch_number) + "_" + str(score[1]) + ".h5"
     model_path = os.path.join(save_dir, model_name)
     model.save(model_path)
@@ -307,12 +307,12 @@ def TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance=False, mode=4):
         os.makedirs(save_dir)
     print('Saved trained model at %s ' % model_path)
     print("NN done. time ->", time.time() - init_time)
-    model_analysis.Model_List_1_time[mode] = time.time() - init_time
+    f_model_analysis.Model_List_1_time[mode] = time.time() - init_time
 
 
 if __name__ == '__main__':
-    path = parameters.DATA_PATH
+    path = f_parameters.DATA_PATH
     test = False
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = load_data.load_data(path,
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=test)
     NN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, imbalance=True, mode=4)
