@@ -103,10 +103,7 @@ def get_best_divide_line(Y_pred, Y_test, count, size, show_image=False):
     return f_single_feature_distribution.get_n_largest(Y_pred, best_index)
 
 
-def ols_analysis(data, feature, target, mode):
-    print("feature ->", feature.columns)
-    print("target ->", target.columns)
-    X_train, X_test, Y_train, Y_test = train_test_split(feature, target, test_size=0.35, random_state=1)
+def ols_analysis(data, X_train, X_test, Y_train, Y_test, mode):
     Linear = LinearRegression(fit_intercept=True, n_jobs=6, positive=False)
     X_train, Y_train = f_preprocess.un_balance(X_train, Y_train)
     Linear.fit(X_train, Y_train)
@@ -162,6 +159,6 @@ def ols_analysis(data, feature, target, mode):
 
 if __name__ == '__main__':
     path = f_parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
-                                                                                                       test_mode=True)
-    ols_analysis(end_off, end_off_feature, end_off_target, mode=True)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
+        f_load_data.f_load_data(path, test_mode=False)
+    ols_analysis(end_off, merge_feature, end_off_feature, merge_target, end_off_target, mode=True)

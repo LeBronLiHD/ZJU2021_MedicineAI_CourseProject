@@ -4,6 +4,7 @@ DATA_PATH = "./data"
 
 END_OFF_COL = 64  # 2, 61, 1
 MERGE_COL = 66  # 4, 61, 1
+DIM_NUM = 62
 
 END_OFF_DIS = 37
 
@@ -22,6 +23,7 @@ N_COMPONENTS = 30
 MODEL_SAVE = ".\model"
 EPOCH_NUM = 50
 EPOCH_NN_NUM = 50
+EPOCH_AE = 100
 
 COLUMNS = 8 + 2  # 64 \APPROX 61
 REPEAT = 4

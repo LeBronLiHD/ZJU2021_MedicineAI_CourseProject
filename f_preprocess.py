@@ -266,7 +266,7 @@ def data_normalization(data, have_target=False):
 
 if __name__ == '__main__':
     path = f_parameters.DATA_PATH
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
-                                                                                                       test_mode=True)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
+        f_load_data.f_load_data(path, test_mode=True)
     test_high_dimension(end_off_feature)
     end_off_clean = data_cleaning(end_off)
