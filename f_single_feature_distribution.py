@@ -125,4 +125,4 @@ if __name__ == '__main__':
     path = f_parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
                                                                                                        test_mode=True)
-    single_feature(end_off, end_off_feature, end_off_target, False)
+    single_feature(end_off, end_off_feature, end_off_target, show_image=True)

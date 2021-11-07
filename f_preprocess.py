@@ -46,20 +46,22 @@ import math
 
 def all_zero_one(data_piece):
     for i in range(len(data_piece)):
-        if data_piece[i] != 1 and data_piece != 0:
+        if data_piece[i] != 1 and data_piece[i] != 0:
             return False
     return True
 
 
 def poly_fit(data_piece, frame):
     data_piece = np.array(data_piece)
-    if all_zero_one(data_piece):
-        return data_piece
     data_t = data_piece.T
-    x = [i for i in range(len(data_t[0]))]
+    x = np.array([i for i in range(len(data_t[0]))])
     new_piece = np.zeros((frame, f_parameters.RNN_INPUT_DIM))
     for i in range(len(data_t)):
-        y = data_t[i][:]
+        y = np.array(data_t[i][:])
+        if all_zero_one(y):
+            for j in range(frame):
+                x_value = j * (len(data_t[0]) / frame)
+                new_piece[j][i] = y[math.floor(x_value)]
         coe = np.polyfit(x, y, 5)
         poly = np.poly1d(coe)
         for j in range(frame):

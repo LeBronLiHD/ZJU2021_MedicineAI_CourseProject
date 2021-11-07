@@ -66,7 +66,7 @@ def PCA(data, important):
     data_selected = f_preprocess.data_normalization(data_selected, have_target=True)
     print("data_selected.shape ->", data_selected.shape)
     print("data_selected.columns ->", data_selected.columns)
-    model = decomposition.PCA(n_components=f_parameters.N_COMPONENTS)
+    model = decomposition.PCA(n_components=f_parameters.N_COMPONENTS_S)
     X = model.fit_transform(data_selected.iloc[:, :-1])
     pos = pandas.DataFrame()
     pos['X'] = X[:, 0]

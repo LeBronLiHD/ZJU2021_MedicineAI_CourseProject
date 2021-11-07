@@ -21,7 +21,7 @@ from keras import models
 
 
 # Build the RNN model
-def build_model(units, input_dim, output_size, allow_cudnn_kernel=True):
+def build_model(units, input_dim, output_size, middle_size, allow_cudnn_kernel=True):
     # CuDNN is only available at the layer level, and not at the cell level.
     # This means `LSTM(units)` will use the CuDNN kernel,
     # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
@@ -36,8 +36,12 @@ def build_model(units, input_dim, output_size, allow_cudnn_kernel=True):
     model = models.Sequential(
         [
             lstm_layer,
+            layers.Dense(middle_size),
+            layers.Dense(middle_size),
             layers.BatchNormalization(),
-            layers.Dense(output_size),
+            layers.Dense(middle_size),
+            layers.Dense(middle_size),
+            layers.Dense(output_size)
         ]
     )
     return model
@@ -45,13 +49,12 @@ def build_model(units, input_dim, output_size, allow_cudnn_kernel=True):
 
 def RNN(X_train, Y_train, X_test, Y_test):
     # TODO: f_preprocess
-    batch_size = 64
-    # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
-    # Each input sequence will be of size (28, 28) (height is treated like time).
+    middle_size = 1024
+    batch_size = 256
     input_dim = 61
-    units = 64
-    output_size = 2  # labels are from 0 to 9
-    model = build_model(units, input_dim, output_size, allow_cudnn_kernel=False)
+    units = 256
+    output_size = 2
+    model = build_model(units, input_dim, output_size, middle_size, allow_cudnn_kernel=False)
     model.compile(
         loss=losses.SparseCategoricalCrossentropy(from_logits=True),
         optimizer="sgd",
@@ -87,7 +90,7 @@ def RNN(X_train, Y_train, X_test, Y_test):
     print('model accuracy ->', score[1])
     # saving the model
     save_dir = f_parameters.MODEL_SAVE
-    model_name = "model_cnn_" + str(f_parameters.EPOCH_RNN) + "_" + str(score[1]) + ".h5"
+    model_name = "model_rnn_" + str(f_parameters.EPOCH_RNN) + "_" + str(score[1]) + ".h5"
     model_path = os.path.join(save_dir, model_name)
     model.save(model_path)
     if not os.path.exists(save_dir):

@@ -89,20 +89,24 @@ def f_load_data_predict(path, test_mode=True):
     print("merge_target.shape ->", merge_target.shape)
 
     for i in range(count_groups_test):
+        groups_test_feature_piece = []
         for j in range(divide_groups_test[i], divide_groups_test[i + 1]):
-            groups_test_feature_piece = []
+            groups_test_feature_piece_piece = []
             for k in range(f_parameters.RNN_INPUT_DIM):
-                groups_test_feature_piece.append(end_off_feature.at[j, end_off_feature.columns[k]])
-            groups_test_feature.append(groups_test_feature_piece)
+                groups_test_feature_piece_piece.append(end_off_feature.at[j, end_off_feature.columns[k]])
+            groups_test_feature_piece.append(groups_test_feature_piece_piece)
+        groups_test_feature.append(groups_test_feature_piece)
         # groups_test_feature.append(end_off_feature[divide_groups_test[i]:divide_groups_test[i + 1]])
         groups_test_target.append(end_off_target.at[divide_groups_test[i + 1] - 1, end_off_target.columns[0]])
         # groups_test.append(end_off[divide_groups_test[i]:divide_groups_test[i + 1]])
     for i in range(count_groups_train):
+        groups_train_feature_piece = []
         for j in range(divide_groups_train[i], divide_groups_train[i + 1]):
-            groups_train_feature_piece = []
+            groups_train_feature_piece_piece = []
             for k in range(f_parameters.RNN_INPUT_DIM):
-                groups_train_feature_piece.append(merge_feature.at[j, merge_feature.columns[k]])
-            groups_train_feature.append(groups_train_feature_piece)
+                groups_train_feature_piece_piece.append(merge_feature.at[j, merge_feature.columns[k]])
+            groups_train_feature_piece.append(groups_train_feature_piece_piece)
+        groups_train_feature.append(groups_train_feature_piece)
         # groups_train_feature.append(merge_feature[divide_groups_train[i]:divide_groups_train[i + 1]])
         groups_train_target.append(merge_target.at[divide_groups_train[i + 1] - 1, merge_target.columns[0]])
         # groups_train.append(merge[divide_groups_train[i]:divide_groups_train[i + 1]])

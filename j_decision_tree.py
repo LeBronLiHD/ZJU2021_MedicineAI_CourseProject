@@ -42,7 +42,7 @@ def train_decision_tree(X_train, Y_train, pca=False, n_com=f_parameters.N_COMPON
     print("decision tree training...")
     init_time = time.time()
     # Create Decision Tree classifer object
-    clf = DecisionTreeClassifier(criterion="scale", splitter="best", max_features=None)
+    clf = DecisionTreeClassifier(criterion="gini", splitter="best", max_features=None)
     # Train Decision Tree Classifer
     X_train, Y_train= f_preprocess.un_balance(X_train, Y_train, ratio="minority", mode=1, ensemble=False)
     PCA_model = None

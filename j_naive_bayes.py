@@ -39,10 +39,11 @@ def pls_regression(data, X_train, X_test, Y_train, Y_test, mode):
         if Y_test[Y_test.columns[0]].iat[i] == 1:
             count += 1
     print(count, size - count)
-    if mode:
-        standard = r_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
-    else:
-        standard = f_single_feature_distribution.get_n_largest(Y_pred, count)
+    # if mode:
+    #     standard = r_ols.get_best_divide_line(Y_pred, Y_test, count, size, show_image=False)
+    # else:
+    #     standard = f_single_feature_distribution.get_n_largest(Y_pred, count)
+    standard = 0.5
     print("standard =", standard)
     right = 0
     right_0_1 = [0, 0]
