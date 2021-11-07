@@ -44,6 +44,52 @@ import matplotlib.pyplot as plt
 import math
 
 
+def all_zero_one(data_piece):
+    for i in range(len(data_piece)):
+        if data_piece[i] != 1 and data_piece != 0:
+            return False
+    return True
+
+
+def poly_fit(data_piece, frame):
+    data_piece = np.array(data_piece)
+    if all_zero_one(data_piece):
+        return data_piece
+    data_t = data_piece.T
+    x = [i for i in range(len(data_t[0]))]
+    new_piece = np.zeros((frame, f_parameters.RNN_INPUT_DIM))
+    for i in range(len(data_t)):
+        y = data_t[i][:]
+        coe = np.polyfit(x, y, 5)
+        poly = np.poly1d(coe)
+        for j in range(frame):
+            x_value = j * (len(data_t[0])/frame)
+            new_piece[j][i] = poly(x_value)
+    return new_piece
+
+
+def get_frame(x_data):
+    frames = []
+    for i in range(len(x_data)):
+        if len(x_data[i]) < 5:
+            continue
+        else:
+            frames.append(len(x_data[i]))
+    return round(math.fsum(frames)/len(frames))
+
+
+def reshape_width_height(x_data, y_data):
+    new_x = []
+    new_y = []
+    frame = get_frame(x_data)
+    for i in range(len(x_data)):
+        if len(x_data[i]) < 5:
+            continue
+        new_x.append(np.array(poly_fit(x_data[i], frame)))
+        new_y.append(y_data[i])
+    return np.array(new_x), np.array(new_y)
+
+
 def high_dimension_big_exp(data, edge=False):
     print("before reshaping ->", data.shape)
     print(type(data))

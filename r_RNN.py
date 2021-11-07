@@ -9,14 +9,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import f_parameters
 import f_load_data
-from sklearn.metrics import roc_auc_score, roc_curve
-from keras.callbacks import EarlyStopping
-import os
-from sklearn.model_selection import train_test_split
+from keras import losses
 import f_preprocess
-from tensorflow.keras.utils import to_categorical
-import tensorflow as tf
-import random
+import os
 import time
 import f_model_analysis
 from keras.models import Sequential, load_model
@@ -48,18 +43,59 @@ def build_model(units, input_dim, output_size, allow_cudnn_kernel=True):
     return model
 
 
-def RNN(X_train, Y_train, X_test, Y_test, imbalance=True, nor=False):
+def RNN(X_train, Y_train, X_test, Y_test):
     # TODO: f_preprocess
     batch_size = 64
     # Each MNIST image batch is a tensor of shape (batch_size, 28, 28).
     # Each input sequence will be of size (28, 28) (height is treated like time).
-    input_dim = 28
+    input_dim = 61
     units = 64
-    output_size = 10  # labels are from 0 to 9
-    TrainRNNModel(X_train, Y_train, X_test, Y_test)
+    output_size = 2  # labels are from 0 to 9
+    model = build_model(units, input_dim, output_size, allow_cudnn_kernel=False)
+    model.compile(
+        loss=losses.SparseCategoricalCrossentropy(from_logits=True),
+        optimizer="sgd",
+        metrics=["accuracy"],
+    )
+    history = model.fit(
+        x_train, y_train,
+        validation_data=(x_test, y_test),
+        batch_size=batch_size, epochs=f_parameters.EPOCH_RNN,
+        verbose=1, shuffle=True
+    )
+    print(model.summary())
+
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('Model accuracy')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+    history.history['val_loss'][0] = min(1.0, history.history['val_loss'][0])
+    history.history['loss'][0] = min(1.0, history.history['loss'][0])
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Model loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Test'], loc='upper left')
+    plt.show()
+
+    score = model.evaluate(x_test, y_test)
+    print('model accuracy ->', score[1])
+    # saving the model
+    save_dir = f_parameters.MODEL_SAVE
+    model_name = "model_cnn_" + str(f_parameters.EPOCH_RNN) + "_" + str(score[1]) + ".h5"
+    model_path = os.path.join(save_dir, model_name)
+    model.save(model_path)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    print('saved trained model at %s ' % model_path)
 
 
-def TrainRNNModel(X_train, Y_train, X_test, Y_test):
+def simpleRNNModel(X_train, Y_train, X_test, Y_test):
     init_time = time.time()
     # build rnn model
     model = Sequential()
@@ -72,11 +108,15 @@ def TrainRNNModel(X_train, Y_train, X_test, Y_test):
     model.add(layers.LSTM(128))
     # Add a Dense layer with 10 units.
     model.add(layers.Dense(10))
+    return model
 
 
 if __name__ == '__main__':
     path = f_parameters.DATA_PATH
     test = False
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
+    x_train, y_train, x_test, y_test = \
         f_load_data.f_load_data_predict(path, test_mode=False)
+    x_train, y_train = f_preprocess.reshape_width_height(x_train, y_train)
+    x_test, y_test = f_preprocess.reshape_width_height(x_test, y_test)
+    RNN(x_train, y_train, x_test, y_test)
 
