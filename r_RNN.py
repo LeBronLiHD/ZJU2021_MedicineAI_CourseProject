@@ -21,7 +21,7 @@ from keras import models
 
 
 # Build the RNN model
-def build_model(units, input_dim, output_size, middle_size, allow_cudnn_kernel=True):
+def build_model(units, high_middle_size, input_dim, output_size, middle_size, allow_cudnn_kernel=True):
     # CuDNN is only available at the layer level, and not at the cell level.
     # This means `LSTM(units)` will use the CuDNN kernel,
     # while RNN(LSTMCell(units)) will run on non-CuDNN kernel.
@@ -31,14 +31,16 @@ def build_model(units, input_dim, output_size, middle_size, allow_cudnn_kernel=T
     else:
         # Wrapping a LSTMCell in a RNN layer will not use CuDNN.
         lstm_layer = layers.RNN(
-            layers.LSTMCell(units), input_shape=(None, input_dim)
+            layers.LSTMCell(units), input_shape=(None, input_dim),
         )
     model = models.Sequential(
         [
             lstm_layer,
             layers.Dense(middle_size),
             layers.Dense(middle_size),
+            layers.Dense(high_middle_size),
             layers.BatchNormalization(),
+            layers.Dense(high_middle_size),
             layers.Dense(middle_size),
             layers.Dense(middle_size),
             layers.Dense(output_size)
@@ -47,14 +49,16 @@ def build_model(units, input_dim, output_size, middle_size, allow_cudnn_kernel=T
     return model
 
 
-def RNN(X_train, Y_train, X_test, Y_test):
+def RNN(x_train, y_train, x_test, y_test):
     # TODO: f_preprocess
     middle_size = 1024
+    high_middle_size = middle_size * 2
     batch_size = 256
     input_dim = 61
-    units = 256
+    units = 1024
+    gru_units = units * 2
     output_size = 2
-    model = build_model(units, input_dim, output_size, middle_size, allow_cudnn_kernel=False)
+    model = build_model(units, high_middle_size, input_dim, output_size, middle_size, allow_cudnn_kernel=False)
     model.compile(
         loss=losses.SparseCategoricalCrossentropy(from_logits=True),
         optimizer="sgd",
@@ -98,18 +102,18 @@ def RNN(X_train, Y_train, X_test, Y_test):
     print('saved trained model at %s ' % model_path)
 
 
-def simpleRNNModel(X_train, Y_train, X_test, Y_test):
+def simpleRNNModel():
     init_time = time.time()
     # build rnn model
     model = Sequential()
     # Add an Embedding layer expecting input vocab of size 1000, and
     # output embedding dimension of size 64.
     model.add(layers.Embedding(input_dim=f_parameters.RNN_INPUT_DIM, output_dim=64))
-    # The output of GRU will be a 3D tensor of shape (batch_size, timesteps, 256)
-    model.add(layers.GRU(256, return_sequences=True))
-    # Add a LSTM layer with 128 internal units.
-    model.add(layers.LSTM(128))
-    # Add a Dense layer with 10 units.
+    model.add(layers.LSTM(256))
+    model.add(layers.GRU(512, return_sequences=True))
+    model.add(layers.LSTM(512))
+    model.add(layers.GRU(512, return_sequences=True))
+    model.add(layers.LSTM(256))
     model.add(layers.Dense(10))
     return model
 
