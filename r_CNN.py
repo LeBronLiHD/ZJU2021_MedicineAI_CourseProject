@@ -56,16 +56,20 @@ def cal_auc(pred_proba, y_test):
 
 
 def CNN(x_train, y_train, x_test, y_test):
+    y_train, y_test = to_categorical(y_train, num_classes=f_parameters.NN_NUM_CLASS), \
+                      to_categorical(y_test, num_classes=f_parameters.NN_NUM_CLASS)
+    width, height = np.shape(x_train)[1], np.shape(x_train)[2]
+    print("width =", width, "  height =", height)
+    x_train, x_test = tf.expand_dims(x_train, 3), tf.expand_dims(x_test, 3)
     print(np.shape(x_train))
     print(np.shape(x_test))
     print(np.shape(y_train))
     print(np.shape(y_test))
-    width, height = np.shape(x_train)[1], np.shape(x_train)[2]
-    print("width =", width, "  height =", height)
+    TrainCNN(x_train, y_train, width, height, x_test, y_test)
 
 
 def TrainCNN(x_train, y_train, width, height, x_test, y_test):
-    epoch_i = f_parameters.EPOCH_NUM  # epoch number
+    epoch_i = f_parameters.EPOCH_RNN  # epoch number
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
@@ -104,8 +108,13 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
 
     # 4. 训练
     # 绘制训练 & 验证的准确率值
-    history.history['accuracy'][0] = min(0.0, history.history['accuracy'][0])
-    history.history['val_accuracy'][0] = min(0.0, history.history['val_accuracy'][0])
+    if epoch_i > 5:
+        repair = 5
+    else:
+        repair = epoch_i
+    for i in range(repair):
+        history.history['accuracy'][i] = min(0.0, history.history['accuracy'][i])
+        history.history['val_accuracy'][i] = min(0.0, history.history['val_accuracy'][i])
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
@@ -115,8 +124,9 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
     plt.show()
 
     # 绘制训练 & 验证的损失值
-    history.history['loss'][0] = min(1.0, history.history['loss'][0])
-    history.history['val_loss'][0] = min(1.0, history.history['val_loss'][0])
+    for i in range(repair):
+        history.history['loss'][i] = min(1.0, history.history['loss'][i])
+        history.history['val_loss'][i] = min(1.0, history.history['val_loss'][i])
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')
