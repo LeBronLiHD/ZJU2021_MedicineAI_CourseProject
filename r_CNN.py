@@ -77,17 +77,17 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
-    model.add(Conv2D(filters=32, kernel_size=(2, 2), padding='same',
+    model.add(Conv2D(filters=8, kernel_size=(2, 2), padding='same',
                      input_shape=(width, height, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.2))
-    model.add(Dense(32))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(64))
+    model.add(Dense(16))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(32))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.2))
+    model.add(Dense(16))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(f_parameters.NN_NUM_CLASS, activation=get_activation()))

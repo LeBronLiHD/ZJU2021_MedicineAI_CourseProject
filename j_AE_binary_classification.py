@@ -35,16 +35,16 @@ def cal_auc(pred_proba, y_test):
 
 def TrainAEModel(x_train, y_train, x_test, y_test):
     input_img = Input(shape=(f_parameters.DIM_NUM,))
-    encoded = Dense(512, activation='relu')(input_img)
-    encoded = Dense(256, activation='relu')(encoded)
-    encoded = Dense(128, activation='relu')(encoded)
-    encoded = Dense(64, activation='relu')(encoded)
-    encoded = Dense(32, activation='relu')(encoded)
+    encoded = Dense(32, activation='relu')(input_img)
+    # encoded = Dense(256, activation='relu')(encoded)
+    # encoded = Dense(128, activation='relu')(encoded)
+    encoded = Dense(16, activation='relu')(encoded)
+    encoded = Dense(8, activation='relu')(encoded)
 
-    decoded = Dense(64, activation='relu')(encoded)
-    decoded = Dense(128, activation='relu')(decoded)
-    decoded = Dense(256, activation='relu')(decoded)
-    decoded = Dense(512, activation='relu')(decoded)
+    decoded = Dense(16, activation='relu')(encoded)
+    # decoded = Dense(128, activation='relu')(decoded)
+    # decoded = Dense(256, activation='relu')(decoded)
+    decoded = Dense(32, activation='relu')(decoded)
     decoded = Dense(f_parameters.DIM_NUM, activation='sigmoid')(decoded)
     autoencoder = Model(input_img, decoded)
     autoencoder.compile(loss='binary_crossentropy', optimizer='adam')
@@ -52,7 +52,7 @@ def TrainAEModel(x_train, y_train, x_test, y_test):
 
     print("epoch ->", epoch_i)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, mode='min')
-    history = autoencoder.fit(x_train, x_train, batch_size=64, epochs=epoch_i, verbose=1,
+    history = autoencoder.fit(x_train, x_train, batch_size=8, epochs=epoch_i, verbose=1,
                               callbacks=[early_stopping],
                               # validation_split=0.1,
                               validation_data=(x_test, x_test),

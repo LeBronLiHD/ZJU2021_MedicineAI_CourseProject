@@ -313,6 +313,6 @@ def TrainNNModel(X_train, Y_train, X_test, Y_test, imbalance=False, mode=4):
 if __name__ == '__main__':
     path = f_parameters.DATA_PATH
     test = False
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
-                                                                                                       test_mode=test)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
+        f_load_data.f_load_data(path, test_mode=test)
     NN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, imbalance=True, mode=4)

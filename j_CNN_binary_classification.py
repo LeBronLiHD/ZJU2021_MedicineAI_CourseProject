@@ -319,8 +319,8 @@ def TrainCnnModel(x_train, y_train, width, height, x_test, y_test, big=False, ex
 if __name__ == '__main__':
     path = f_parameters.DATA_PATH
     test = False
-    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = f_load_data.f_load_data(path,
-                                                                                                       test_mode=test)
+    end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
+        f_load_data.f_load_data(path, test_mode=test)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=False, exp=False, ver=True)
     # CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, mode=5, big=False, exp=True, ver=True)
     CNN(merge_feature, merge_target, end_off_feature, end_off_target, end_off, big=True, exp=False, ver=True)
