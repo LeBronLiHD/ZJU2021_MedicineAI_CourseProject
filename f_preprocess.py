@@ -83,8 +83,12 @@ def get_frame(x_data):
 def reshape_width_height(x_data, y_data):
     new_x = []
     new_y = []
-    frame = get_frame(x_data)
-    frame = f_parameters.R_CNN_FRAME
+    if f_parameters.R_CNN_FRAME_MODIFIED == False:
+        frame = get_frame(x_data)
+        f_parameters.R_CNN_FRAME = frame
+        f_parameters.R_CNN_FRAME_MODIFIED = True
+    else:
+        frame = f_parameters.R_CNN_FRAME
     for i in range(len(x_data)):
         if len(x_data[i]) < 5:
             continue

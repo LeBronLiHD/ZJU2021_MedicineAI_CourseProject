@@ -41,6 +41,10 @@ sys.dont_write_bytecode = True
 
 matplotlib.use('TkAgg')
 
+def data_normalization(data):
+    data_nor = (data - np.mean(data))/np.std(data)
+    return data_nor
+
 
 def get_activation():
     if f_parameters.NN_NUM_CLASS == 2:
@@ -77,13 +81,13 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
                      input_shape=(width, height, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.2))
-    model.add(Dense(128))
+    model.add(Dense(32))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(256))
+    model.add(Dense(64))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(128))
+    model.add(Dense(32))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(f_parameters.NN_NUM_CLASS, activation=get_activation()))
@@ -112,9 +116,9 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
         repair = 5
     else:
         repair = epoch_i
-    for i in range(repair):
-        history.history['accuracy'][i] = min(0.0, history.history['accuracy'][i])
-        history.history['val_accuracy'][i] = min(0.0, history.history['val_accuracy'][i])
+    # for i in range(repair):
+    #     history.history['accuracy'][i] = min(0.0, history.history['accuracy'][i])
+    #     history.history['val_accuracy'][i] = min(0.0, history.history['val_accuracy'][i])
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
     plt.title('Model accuracy')
@@ -125,8 +129,8 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
 
     # 绘制训练 & 验证的损失值
     for i in range(repair):
-        history.history['loss'][i] = min(1.0, history.history['loss'][i])
-        history.history['val_loss'][i] = min(1.0, history.history['val_loss'][i])
+        history.history['loss'][i] = min(1.5, history.history['loss'][i])
+        history.history['val_loss'][i] = min(1.5, history.history['val_loss'][i])
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
     plt.title('Model loss')
