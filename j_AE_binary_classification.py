@@ -34,8 +34,6 @@ def cal_auc(pred_proba, y_test):
 
 
 def vertify_model(test, expect, x_pd_train, x_pd_test):
-    print("test.shape ->", np.shape(test))
-    print("expect.shape ->", np.shape(expect))
     model_lists = os.listdir(f_parameters.MODEL_SAVE)
     model_lists = sorted(model_lists,
                          key=lambda files: os.path.getmtime(os.path.join(f_parameters.MODEL_SAVE, files)),
@@ -52,55 +50,6 @@ def vertify_model(test, expect, x_pd_train, x_pd_test):
     print("model_select ->", model_path_vertify)
     model = load_model(model_path_vertify)
     print("model loaded!")
-    ones = []
-    for i in range(len(expect)):
-        if np.argmax(expect[i]) == 1:
-            ones.append(i)
-    print("ones.length ->", len(ones))
-
-    right = 0
-    right_0_1 = [0, 0]
-    error_0_1 = [0, 0]
-    impossible_r_e = [0, 0]
-    test_pred = []
-    test_test = []
-    size = len(test)
-    count = len(ones)
-    for i in range(size):
-        data_ana_piece = test[i]
-        data_ana_piece = np.expand_dims(data_ana_piece, 0)
-        output = model.predict(data_ana_piece)
-        test_pred.append(output.argmax())
-        test_test.append(np.argmax(expect[i]))
-        if i % 200 == 0:
-            print("model analysis ... i =", i)
-        if output.argmax() == np.argmax(expect[i]):
-            right += 1
-            if np.argmax(expect[i]) == 0:
-                right_0_1[0] += 1
-            elif np.argmax(expect[i]) == 1:
-                right_0_1[1] += 1
-            else:
-                impossible_r_e[0] += 1
-        else:
-            if np.argmax(expect[i]) == 0:
-                error_0_1[0] += 1
-            elif np.argmax(expect[i]) == 1:
-                error_0_1[1] += 1
-            else:
-                impossible_r_e[1] += 1
-        continue
-
-    auc = cal_auc(test_pred, test_test)
-    print("model auc ->", auc)
-    print("right =", right)
-    print("fault =", size - right)
-    print("overall right ratio =", right / size)
-    print("0 right ratio =", right_0_1[0] / (size - count))
-    print("1 right ratio =", right_0_1[1] / count)
-    print("right_0_1 ->", right_0_1)
-    print("error_0_1 ->", error_0_1)
-    print("impossible_r_e ->", impossible_r_e)
 
     X_pred = model.predict(np.array(x_pd_test))
     X_pred = pd.DataFrame(X_pred,
@@ -145,18 +94,16 @@ def TrainAEModel(x_train, y_train, x_test, y_test, x_pd_train):
     autoencoder.compile(loss='binary_crossentropy', optimizer='adam')
     epoch_i = f_parameters.EPOCH_AE
     count = 0
-    for i in range(y_train.shape[0]):
-        if np.argmax(y_train[i]) == 1:
-            count += 1
-    class_weigh = {0: (y_train.shape[0] - count) / y_train.shape[0], 1: count / y_train.shape[0]}
-    print(class_weigh)
+    # for i in range(y_train.shape[0]):
+    #     if np.argmax(y_train[i]) == 1:
+    #         count += 1
+    # class_weigh = {0: (y_train.shape[0] - count) / y_train.shape[0], 1: count / y_train.shape[0]}
     print("epoch ->", epoch_i)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, mode='min')
     history = autoencoder.fit(x_train, x_train, batch_size=64, epochs=epoch_i, verbose=1,
                               callbacks=[early_stopping],
                               # validation_split=0.1,
                               validation_data=(x_test, x_test),
-                              class_weight=class_weigh,
                               shuffle=True)
     print(autoencoder.summary())
 
@@ -203,21 +150,14 @@ def AE(X_train, Y_train, X_test, Y_test, x_pd_train, x_pd_test, im_balance=True,
     if im_balance:
         X_train, Y_train = f_preprocess.un_balance(X_train, Y_train, ratio="minority")
         X_test, Y_test = f_preprocess.un_balance(X_test, Y_test, ratio="minority")
-    # X_train, X_test = f_preprocess.data_normalization(X_train), f_preprocess.data_normalization(X_test)
-    X_train = np.array(X_train)
-    Y_train = np.array(Y_train)
     X_test = np.array(X_test)
-    Y_test = np.array(Y_test)
-    Y_train, Y_test = to_categorical(Y_train, num_classes=f_parameters.NN_NUM_CLASS), \
-                      to_categorical(Y_test, num_classes=f_parameters.NN_NUM_CLASS)
-    print("X_train shape ->", np.shape(X_train))
-    print("Y_train shape ->", np.shape(Y_train))
-    print("X_test shape ->", np.shape(X_test))
-    print("Y_test shape ->", np.shape(Y_test))
-    X_train = X_train.astype('float64')
-    X_test = X_test.astype('float64')
-    print(type(X_train))
-    print(type(X_test))
+    X_train = np.array(X_train)
+    X_train = X_train.astype('float32')
+    X_test = X_test.astype('float32')
+    print("X_train type ->", type(X_train))
+    print("X_test type ->", type(X_test))
+    print("X_train shape ->", X_train.shape)
+    print("X_test shape ->", X_test.shape)
     if train:
         TrainAEModel(X_train, Y_train, X_test, Y_test, x_pd_train)
     if ver:
@@ -228,4 +168,5 @@ if __name__ == '__main__':
     path = f_parameters.DATA_PATH
     end_off, merge, end_off_feature, merge_feature, end_off_target, merge_target = \
         f_load_data.f_load_data(path, test_mode=False)
-    AE(merge_feature, merge_target, end_off_feature, end_off_target, merge_feature, end_off_feature)
+    AE(merge_feature, merge_target, end_off_feature, end_off_target, merge_feature, end_off_feature,
+       train=False, ver=False)

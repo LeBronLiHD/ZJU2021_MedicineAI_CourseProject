@@ -69,7 +69,7 @@ def CNN(x_train, y_train, x_test, y_test):
 
 
 def TrainCNN(x_train, y_train, width, height, x_test, y_test):
-    epoch_i = f_parameters.EPOCH_RNN  # epoch number
+    epoch_i = f_parameters.EPOCH_R_CNN  # epoch number
     # 2. 定义模型结构
     # 迭代次数：第一次设置为30，后为了优化训练效果更改为100，后改为50
     model = Sequential()
@@ -77,13 +77,13 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
                      input_shape=(width, height, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.2))
-    model.add(Dense(512))
+    model.add(Dense(128))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(1024))
+    model.add(Dense(256))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(512))
+    model.add(Dense(128))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(f_parameters.NN_NUM_CLASS, activation=get_activation()))
