@@ -91,9 +91,6 @@ def TrainCAEModel(x_train, y_train, x_test, y_test):
 
 
 def CAE(X_train, Y_train, X_test, Y_test, im_balance=True, train=True, ver=True):
-    if im_balance:
-        X_train, Y_train = f_preprocess.un_balance(X_train, Y_train, ratio="minority")
-        X_test, Y_test = f_preprocess.un_balance(X_test, Y_test, ratio="minority")
     X_test = np.array(X_test)
     X_train = np.array(X_train)
     X_train = X_train.astype('float32')

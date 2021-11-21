@@ -84,7 +84,7 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
     model.add(Dense(16))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(32))
+    model.add(Dense(16))
     model.add(Activation('relu'))
     model.add(Dropout(0.2))
     model.add(Dense(16))
@@ -102,7 +102,7 @@ def TrainCNN(x_train, y_train, width, height, x_test, y_test):
             count += 1
     class_weigh = {0: (y_train.shape[0] - count) / y_train.shape[0], 1: count / y_train.shape[0]}
     print("epoch ->", epoch_i)
-    history = model.fit(x_train, y_train, batch_size=32, epochs=epoch_i, verbose=1,
+    history = model.fit(x_train, y_train, batch_size=16, epochs=epoch_i, verbose=1,
                         # callbacks=[early_stopping],
                         validation_split=0.1,
                         # validation_data=(x_test, y_test),

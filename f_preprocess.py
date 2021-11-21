@@ -291,7 +291,7 @@ def data_cleaning(data):
     return data
 
 
-def data_normalization_maxmin(data, have_target=False):
+def data_normalization(data, have_target=False):
     print("data normalization maxmin...")
     answer = []
     for i in range(data.shape[0]):
@@ -303,7 +303,7 @@ def data_normalization_maxmin(data, have_target=False):
     return data_nor
 
 
-def data_normalization(data, have_target=False):
+def data_normalization_normal(data, have_target=False):
     print("data normalization...")
     answer = []
     if have_target:
