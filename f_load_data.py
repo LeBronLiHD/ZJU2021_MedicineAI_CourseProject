@@ -30,7 +30,7 @@ def merge_data(end_off, merge, end_off_feature, merge_feature, end_off_target, m
     return data, feature, target
 
 
-def f_load_data_predict(path, test_mode=True):
+def f_load_data_predict(path, test_mode=True, normal=True):
     print("load data for predict...")
     print("test_mode =", test_mode)
     files = []
@@ -90,7 +90,8 @@ def f_load_data_predict(path, test_mode=True):
     print("end_off_target.shape ->", end_off_target.shape)
     print("merge_target.shape ->", merge_target.shape)
 
-    end_off_feature, merge_feature = f_preprocess.data_normalization(end_off_feature, have_target=False), \
+    if normal:
+        end_off_feature, merge_feature = f_preprocess.data_normalization(end_off_feature, have_target=False), \
                                      f_preprocess.data_normalization(merge_feature, have_target=False)
 
     for i in range(count_groups_test):

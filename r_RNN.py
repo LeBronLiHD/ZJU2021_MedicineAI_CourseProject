@@ -122,7 +122,7 @@ if __name__ == '__main__':
     path = f_parameters.DATA_PATH
     test = False
     x_train, y_train, x_test, y_test = \
-        f_load_data.f_load_data_predict(path, test_mode=False)
+        f_load_data.f_load_data_predict(path, test_mode=False, normal=False)
     x_train, y_train = f_preprocess.reshape_width_height(x_train, y_train)
     x_test, y_test = f_preprocess.reshape_width_height(x_test, y_test)
     RNN(x_train, y_train, x_test, y_test)
