@@ -37,7 +37,7 @@
 
 ![2](https://github.com/LeBronLiHD/ZJU2021_MedicineAI_CourseProject/blob/main/images/CNN_Image_3.png)
 
-## `MINST` Auto Encoder
+## `MNIST` Auto Encoder
 
 - Deep Auto Encoder
   - `Loss = 0.0805`
